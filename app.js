@@ -49,6 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let autoSyncTimer = null;
 
   // DOM Elements
+  const laoCirclesTrack = document.getElementById("laoCirclesTrack");
   const sheetSelect = document.getElementById("sheetSelect");
   const laoFilter = document.getElementById("laoFilter");
   const statusFilter = document.getElementById("statusFilter");
@@ -81,6 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Initialize
   initTheme();
   initSheetDropdown();
+  renderLaoCircles(currentItems);
   renderBottleneckGrid();
   initCharts();
   applyFilters();
@@ -384,11 +386,102 @@ document.addEventListener("DOMContentLoaded", () => {
       dateBadge.title = `Data As On: ${asOnDate}`;
     }
 
+    renderLaoCircles(items);
     applyFilters();
 
     if (!isInitial) {
       showToast(`Synced ${items.length} records live from '${sheetName}'`);
     }
+  }
+
+  /* ----------------------------------------------------
+     INTERACTIVE LAO CIRCULAR BADGES
+  ---------------------------------------------------- */
+  function renderLaoCircles(data) {
+    if (!laoCirclesTrack) return;
+    laoCirclesTrack.innerHTML = "";
+
+    const laoList = [
+      { id: "ALL", name: "All District", short: "DIST" },
+      { id: "SDC Unit-I", name: "SDC Unit-I", short: "SDC-I" },
+      { id: "SDC Unit-II", name: "SDC Unit-II", short: "SDC-II" },
+      { id: "RDO Miryalaguda", name: "Miryalaguda", short: "MLG" },
+      { id: "RDO Nalgonda", name: "Nalgonda", short: "NLG" },
+      { id: "PA to SPL Collector", name: "Spl Collector", short: "SPL" },
+      { id: "RDO Devarakonda", name: "Devarakonda", short: "DVK" }
+    ];
+
+    laoList.forEach((lao) => {
+      let released = 0;
+      let disbursed = 0;
+      let schemesCount = 0;
+
+      if (lao.id === "ALL") {
+        released = data.reduce((acc, d) => acc + (d.releasedCr || 0), 0);
+        disbursed = data.reduce((acc, d) => acc + (d.totalDisbursedCr || 0), 0);
+        schemesCount = data.length;
+      } else {
+        const filtered = data.filter(d => d.lao === lao.id);
+        released = filtered.reduce((acc, d) => acc + (d.releasedCr || 0), 0);
+        disbursed = filtered.reduce((acc, d) => acc + (d.totalDisbursedCr || 0), 0);
+        schemesCount = filtered.length;
+      }
+
+      const pct = released > 0 ? (disbursed / released) * 100 : 0;
+      const isSelected = activeLao === lao.id;
+
+      let ringColor = "#f43f5e"; // Rose
+      if (pct >= 60) {
+        ringColor = "#10b981"; // Emerald
+      } else if (pct >= 30) {
+        ringColor = "#38bdf8"; // Cyan
+      }
+
+      const card = document.createElement("div");
+      card.className = `lao-circle-card ${isSelected ? "active" : ""}`;
+      card.dataset.lao = lao.id;
+      card.title = `Click to filter: ${lao.name} (${pct.toFixed(1)}% disbursed)`;
+      card.innerHTML = `
+        <span class="lao-active-pill"></span>
+        <div class="lao-ring-wrapper">
+          <svg viewBox="0 0 36 36">
+            <path class="lao-ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+            <path class="lao-ring-fill" stroke="${ringColor}" stroke-dasharray="${Math.min(100, Math.max(0, pct)).toFixed(1)}, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+          </svg>
+          <div class="lao-ring-inner">
+            <span class="lao-ring-pct">${pct.toFixed(0)}%</span>
+            <span class="lao-ring-sub">${lao.short}</span>
+          </div>
+        </div>
+        <div class="lao-circle-name">${lao.name}</div>
+        <div class="lao-circle-amount">₹${disbursed.toFixed(1)} Cr</div>
+        <div class="lao-circle-stat">${schemesCount} Schemes</div>
+      `;
+
+      card.addEventListener("click", () => {
+        if (activeLao === lao.id && lao.id !== "ALL") {
+          activeLao = "ALL";
+        } else {
+          activeLao = lao.id;
+        }
+
+        if (laoFilter) laoFilter.value = activeLao;
+        updateActiveLaoCircleUI();
+        applyFilters();
+      });
+
+      laoCirclesTrack.appendChild(card);
+    });
+  }
+
+  function updateActiveLaoCircleUI() {
+    document.querySelectorAll(".lao-circle-card").forEach(c => {
+      if (c.dataset.lao === activeLao) {
+        c.classList.add("active");
+      } else {
+        c.classList.remove("active");
+      }
+    });
   }
 
   function initSheetDropdown() {
@@ -1007,6 +1100,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     laoFilter.addEventListener("change", (e) => {
       activeLao = e.target.value;
+      updateActiveLaoCircleUI();
       applyFilters();
     });
 

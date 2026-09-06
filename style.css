@@ -460,6 +460,170 @@ body {
   color: var(--text-primary);
 }
 
+/* LAO Interactive Circular Strip */
+.lao-circles-section {
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.4rem;
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.lao-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.lao-section-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.lao-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.lao-circles-track {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.85rem;
+  overflow-x: auto;
+  padding-bottom: 0.4rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.lao-circle-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 0.6rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  cursor: pointer;
+  transition: var(--transition);
+  position: relative;
+  user-select: none;
+}
+
+.lao-circle-card:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-highlight);
+  transform: translateY(-3px);
+}
+
+.lao-circle-card.active {
+  background: linear-gradient(180deg, rgba(56, 189, 248, 0.12), rgba(15, 23, 42, 0.6));
+  border-color: var(--color-primary);
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.25);
+  transform: translateY(-3px);
+}
+
+.lao-ring-wrapper {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 0.6rem;
+}
+
+.lao-ring-wrapper svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.lao-ring-bg {
+  stroke: rgba(255, 255, 255, 0.08);
+  fill: none;
+  stroke-width: 5;
+}
+
+.lao-ring-fill {
+  fill: none;
+  stroke-width: 5;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.8s ease-in-out;
+}
+
+.lao-ring-inner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.lao-ring-pct {
+  font-size: 0.775rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.lao-ring-sub {
+  font-size: 0.55rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-top: 0.1rem;
+}
+
+.lao-circle-name {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.25;
+  margin-bottom: 0.2rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.lao-circle-amount {
+  font-size: 0.7rem;
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.lao-circle-stat {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  margin-top: 0.15rem;
+}
+
+.lao-active-pill {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-emerald);
+  box-shadow: 0 0 6px var(--color-emerald);
+  display: none;
+}
+
+.lao-circle-card.active .lao-active-pill {
+  display: block;
+}
+
 /* Controls & Filter Bar */
 .filter-panel {
   background: var(--bg-card);
@@ -1104,6 +1268,18 @@ input:checked + .slider:before {
 
 /* Responsive & Mobile Enhancements */
 @media (max-width: 1200px) {
+  .lao-circles-track {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 0.75rem;
+    padding-bottom: 0.5rem;
+  }
+  .lao-circle-card {
+    min-width: 125px;
+    flex-shrink: 0;
+    scroll-snap-align: start;
+  }
   .kpi-grid {
     grid-template-columns: repeat(2, 1fr);
   }
