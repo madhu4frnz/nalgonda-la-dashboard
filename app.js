@@ -426,78 +426,108 @@ document.addEventListener("DOMContentLoaded", () => {
       { id: "RDO Devarakonda", name: "Devarakonda", short: "DVK" }
     ];
 
-    // When a specific LAO is clicked, display ONLY that LAO and hide all other LAO circles
+    // When a specific LAO is clicked, display the Executive Authority Spotlight Card
     if (activeLao !== "ALL") {
-      // 1. Back button card to restore all authorities
-      const backCard = document.createElement("div");
-      backCard.className = "lao-circle-card lao-back-card";
-      backCard.title = "Click to unhide and view all LAO authorities";
-      backCard.innerHTML = `
-        <div class="lao-ring-wrapper" style="display: flex; align-items: center; justify-content: center;">
-          <span style="font-size: 1.5rem;">🏛️</span>
-        </div>
-        <div class="lao-circle-name" style="color: #38bdf8;">← All Authorities</div>
-        <div class="lao-circle-amount" style="font-size: 0.725rem;">Show All LAOs</div>
-        <div class="lao-circle-stat">Reset Selection</div>
-      `;
-      backCard.addEventListener("click", () => {
-        activeLao = "ALL";
-        activeProject = "ALL";
-        if (laoFilter) laoFilter.value = "ALL";
-        renderLaoCircles(currentItems);
-        renderProjectCircles("ALL", currentItems);
-        updateScopeBannerUI();
-        applyFilters();
-        renderSidebarLaoNav();
-      });
-      laoCirclesTrack.appendChild(backCard);
-
-      // 2. Only display the selected LAO card
-      const selectedLao = laoList.find(l => l.id === activeLao);
+      const selectedLao = laoList.find((l) => l.id === activeLao);
       if (selectedLao) {
-        const filtered = data.filter(d => d.lao === selectedLao.id);
+        const filtered = data.filter((d) => d.lao === selectedLao.id);
         const released = filtered.reduce((acc, d) => acc + (d.releasedCr || 0), 0);
         const disbursed = filtered.reduce((acc, d) => acc + (d.totalDisbursedCr || 0), 0);
+        const balance = filtered.reduce((acc, d) => acc + (d.balanceCr || 0), 0);
+        const beneficiaries = filtered.reduce((acc, d) => acc + (d.beneficiariesPaid || 0), 0);
+        const totalBen = filtered.reduce((acc, d) => acc + (d.totalBeneficiaries || 0), 0);
         const schemesCount = filtered.length;
         const pct = released > 0 ? (disbursed / released) * 100 : 0;
 
-        let ringColor = "#f43f5e";
-        if (pct >= 60) ringColor = "#10b981";
-        else if (pct >= 30) ringColor = "#38bdf8";
-
-        const card = document.createElement("div");
-        card.className = "lao-circle-card active";
-        card.dataset.lao = selectedLao.id;
-        card.title = `Currently viewing ${selectedLao.name}. Click to reset.`;
-        card.innerHTML = `
-          <span class="lao-active-pill"></span>
-          <div class="lao-ring-wrapper">
-            <svg viewBox="0 0 36 36">
-              <path class="lao-ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-              <path class="lao-ring-fill" stroke="${ringColor}" stroke-dasharray="${Math.min(100, Math.max(0, pct)).toFixed(1)}, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-            </svg>
-            <div class="lao-ring-inner">
-              <span class="lao-ring-pct">${pct.toFixed(0)}%</span>
-              <span class="lao-ring-sub">${selectedLao.short}</span>
+        const spotlight = document.createElement("div");
+        spotlight.className = "authority-spotlight-card";
+        spotlight.innerHTML = `
+          <div class="authority-spotlight-header">
+            <div class="authority-title-wrap">
+              <div class="authority-emblem-badge">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 21h18M3 10h18M5 10v11M19 10v11M9 10v11M15 10v11M4 10l8-7 8 7" />
+                </svg>
+              </div>
+              <div class="authority-spotlight-title">
+                <h3>${selectedLao.name}</h3>
+                <div class="authority-spotlight-meta">
+                  <span>🏛️ Authority Sub-Division</span>
+                  <span>•</span>
+                  <span>${schemesCount} Schemes Active</span>
+                  <span>•</span>
+                  <span style="color: #38bdf8; font-weight: 600;">${pct.toFixed(1)}% Disbursed</span>
+                </div>
+              </div>
+            </div>
+            <div>
+              <button class="btn btn-secondary btn-sm" id="unhideAllAuthoritiesBtn" title="View all authorities across the district">
+                ← All Authorities
+              </button>
             </div>
           </div>
-          <div class="lao-circle-name">${selectedLao.name}</div>
-          <div class="lao-circle-amount">₹${disbursed.toFixed(1)} Cr</div>
-          <div class="lao-circle-stat">${schemesCount} Schemes (Only Selected)</div>
+
+          <div class="authority-metrics-row">
+            <div class="authority-metric-cell">
+              <span class="label">Total Released</span>
+              <span class="val">₹${released.toFixed(2)} Cr</span>
+              <span class="sub">Treasury Sanctioned</span>
+            </div>
+            <div class="authority-metric-cell">
+              <span class="label">Total Disbursed</span>
+              <span class="val" style="color: #34d399;">₹${disbursed.toFixed(2)} Cr</span>
+              <span class="sub">${pct.toFixed(1)}% completed</span>
+            </div>
+            <div class="authority-metric-cell">
+              <span class="label">Balance to Disburse</span>
+              <span class="val" style="color: #fb7185;">₹${balance.toFixed(2)} Cr</span>
+              <span class="sub">${schemesCount} active schemes</span>
+            </div>
+            <div class="authority-metric-cell">
+              <span class="label">Beneficiaries Paid</span>
+              <span class="val" style="color: #38bdf8;">${beneficiaries.toLocaleString()}</span>
+              <span class="sub">of ${totalBen.toLocaleString()} awardees</span>
+            </div>
+          </div>
+
+          <div class="compact-lao-switcher">
+            <span class="switcher-label">Switch Authority:</span>
+          </div>
         `;
 
-        card.addEventListener("click", () => {
-          activeLao = "ALL";
-          activeProject = "ALL";
-          if (laoFilter) laoFilter.value = "ALL";
-          renderLaoCircles(currentItems);
-          renderProjectCircles("ALL", currentItems);
-          updateScopeBannerUI();
-          applyFilters();
-          renderSidebarLaoNav();
+        const switcher = spotlight.querySelector(".compact-lao-switcher");
+        laoList.forEach((lao) => {
+          const chip = document.createElement("button");
+          chip.className = `compact-lao-chip ${lao.id === activeLao ? "active" : ""}`;
+          chip.textContent = lao.name;
+          chip.addEventListener("click", () => {
+            activeLao = lao.id;
+            activeProject = "ALL";
+            if (laoFilter) laoFilter.value = activeLao;
+            renderLaoCircles(currentItems);
+            renderProjectCircles(activeLao, currentItems);
+            updateScopeBannerUI();
+            applyFilters();
+            renderSidebarLaoNav();
+          });
+          switcher.appendChild(chip);
         });
 
-        laoCirclesTrack.appendChild(card);
+        const unhideBtn = spotlight.querySelector("#unhideAllAuthoritiesBtn");
+        if (unhideBtn) {
+          unhideBtn.addEventListener("click", () => {
+            activeLao = "ALL";
+            activeProject = "ALL";
+            if (laoFilter) laoFilter.value = "ALL";
+            renderLaoCircles(currentItems);
+            renderProjectCircles("ALL", currentItems);
+            updateScopeBannerUI();
+            applyFilters();
+            renderSidebarLaoNav();
+          });
+        }
+
+        laoCirclesTrack.appendChild(spotlight);
       }
       return;
     }
@@ -712,72 +742,123 @@ document.addEventListener("DOMContentLoaded", () => {
 
     projectCirclesTrack.innerHTML = "";
 
-    // If a specific project is selected, display ONLY that scheme card and hide all other schemes!
+    // If a specific project is selected, display the Executive Scheme Spotlight Card
     if (activeProject !== "ALL") {
-      if (projectCountBadge) {
-        projectCountBadge.textContent = `Viewing Scheme #${activeProject} (Other schemes hidden)`;
-      }
-
-      // Back button to show all schemes under this LAO
-      const backCard = document.createElement("div");
-      backCard.className = "project-circle-card project-back-card";
-      backCard.title = `Click to unhide all ${projects.length} schemes under ${laoId}`;
-      backCard.innerHTML = `
-        <div class="project-ring-wrapper" style="display: flex; align-items: center; justify-content: center;">
-          <span style="font-size: 1.3rem;">📋</span>
-        </div>
-        <div class="project-circle-name" style="color: #38bdf8;">← All Schemes</div>
-        <div class="project-circle-amount" style="font-size: 0.725rem;">Show All (${projects.length})</div>
-        <div class="project-circle-stat">Unhide Schemes</div>
-      `;
-      backCard.addEventListener("click", () => {
-        activeProject = "ALL";
-        renderProjectCircles(activeLao, currentItems);
-        updateScopeBannerUI();
-        applyFilters();
-      });
-      projectCirclesTrack.appendChild(backCard);
-
-      // Only display the selected scheme
-      const proj = projects.find(p => String(p.slNo) === String(activeProject));
+      const proj = projects.find((p) => String(p.slNo) === String(activeProject));
       if (proj) {
         const rel = proj.releasedCr || 0;
         const dis = proj.totalDisbursedCr || 0;
+        const bal = proj.balanceCr || 0;
         const pct = rel > 0 ? (dis / rel) * 100 : 0;
+        const statusClass = (proj.status || "").toLowerCase().includes("completed") ? "status-completed" : "status-in-progress";
 
-        let strokeColor = "#f43f5e";
-        if (pct >= 60) strokeColor = "#10b981";
-        else if (pct >= 30) strokeColor = "#38bdf8";
+        if (projectCountBadge) {
+          projectCountBadge.textContent = `Scheme #${proj.slNo} of ${projects.length}`;
+        }
 
-        const card = document.createElement("div");
-        card.className = "project-circle-card active";
-        card.dataset.projectSl = proj.slNo;
-        card.title = `Currently viewing scheme #${proj.slNo}: ${proj.project}. Click to show all schemes.`;
-        card.innerHTML = `
-          <span class="project-active-pill"></span>
-          <div class="project-ring-wrapper">
-            <svg viewBox="0 0 36 36">
-              <path class="project-ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-              <path class="project-ring-fill" stroke="${strokeColor}" stroke-dasharray="${Math.min(100, Math.max(0, pct)).toFixed(1)}, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-            </svg>
-            <div class="project-ring-inner">
-              <span class="project-ring-pct">${pct.toFixed(0)}%</span>
-              <span class="project-ring-sl">#${proj.slNo}</span>
+        const spotlight = document.createElement("div");
+        spotlight.className = "scheme-spotlight-card";
+        spotlight.innerHTML = `
+          <div class="scheme-spotlight-header">
+            <div class="scheme-spotlight-titles">
+              <div class="scheme-tag-row">
+                <span class="urgency-badge medium" style="font-size: 0.7rem; font-weight: 700;">SCHEME #${proj.slNo}</span>
+                <span class="status-badge ${statusClass}">${proj.status || "Active"}</span>
+                <span style="font-size: 0.75rem; color: var(--text-muted);">${proj.lao}</span>
+              </div>
+              <h3 class="scheme-spotlight-title">${proj.project}</h3>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+              <button class="btn btn-whatsapp btn-sm wa-spotlight-btn" title="Send this scheme's status directly to WhatsApp">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.746.953 3.71 1.456 5.711 1.456h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+                </svg>
+                WhatsApp Status
+              </button>
+              <button class="btn btn-secondary btn-sm" id="unhideAuthoritySchemesBtn">
+                ← All Schemes in ${laoId}
+              </button>
             </div>
           </div>
-          <div class="project-circle-name" title="${proj.project}">${proj.project}</div>
-          <div class="project-circle-amount">₹${dis.toFixed(1)} Cr</div>
-          <div class="project-circle-stat">${(proj.paymentCompletedExtentAc || 0).toFixed(0)} Ac • ${proj.beneficiariesPaid || 0} Ben.</div>
+
+          <div class="scheme-spotlight-grid">
+            <div class="scheme-metric-tile">
+              <span class="tile-label">Disbursed Amount</span>
+              <span class="tile-val" style="color: #34d399;">₹${dis.toFixed(2)} Cr</span>
+              <span class="tile-sub">${pct.toFixed(1)}% of ₹${rel.toFixed(2)} Cr</span>
+            </div>
+            <div class="scheme-metric-tile">
+              <span class="tile-label">Balance Funds</span>
+              <span class="tile-val" style="color: ${bal > 0 ? "#fb7185" : "var(--text-muted)"};">₹${bal.toFixed(2)} Cr</span>
+              <span class="tile-sub">Remaining to Disburse</span>
+            </div>
+            <div class="scheme-metric-tile">
+              <span class="tile-label">Awardees Paid</span>
+              <span class="tile-val" style="color: #38bdf8;">${proj.beneficiariesPaid || 0}</span>
+              <span class="tile-sub">of ${proj.totalBeneficiaries || 0} (${proj.balanceBeneficiaries || 0} Pending)</span>
+            </div>
+            <div class="scheme-metric-tile">
+              <span class="tile-label">Acquired Extent</span>
+              <span class="tile-val" style="color: #fbbf24;">${(proj.paymentCompletedExtentAc || 0).toFixed(2)} Ac</span>
+              <span class="tile-sub">of ${(proj.totalExtentAc || 0).toFixed(2)} Ac (${(proj.balanceExtentAc || 0).toFixed(2)} Ac Bal)</span>
+            </div>
+          </div>
+
+          <div class="scheme-remarks-callout">
+            <div class="scheme-remarks-title">
+              <span>📝 Ground Remarks & Administrative Status</span>
+              <span>DTO Token: <strong style="color: #38bdf8;">${proj.dtoToken || "N/A"}</strong> | Credit: <strong>${proj.creditDate || "N/A"}</strong></span>
+            </div>
+            <p class="scheme-remarks-body">"${proj.remarks || "No specific field bottleneck or dispute noted for this scheme."}"</p>
+          </div>
+
+          <div class="scheme-pills-strip">
+            <span class="switcher-label">Other Schemes in ${laoId}:</span>
+          </div>
         `;
 
-        card.addEventListener("click", () => {
+        const waBtn = spotlight.querySelector(".wa-spotlight-btn");
+        if (waBtn) {
+          waBtn.addEventListener("click", () => sendProjectWhatsApp(proj.slNo));
+        }
+
+        const unhideBtn = spotlight.querySelector("#unhideAuthoritySchemesBtn");
+        if (unhideBtn) {
+          unhideBtn.addEventListener("click", () => {
+            activeProject = "ALL";
+            renderProjectCircles(activeLao, currentItems);
+            updateScopeBannerUI();
+            applyFilters();
+          });
+        }
+
+        const pillsStrip = spotlight.querySelector(".scheme-pills-strip");
+        const allPill = document.createElement("button");
+        allPill.className = "compact-lao-chip";
+        allPill.textContent = `All ${projects.length} Schemes`;
+        allPill.addEventListener("click", () => {
           activeProject = "ALL";
           renderProjectCircles(activeLao, currentItems);
           updateScopeBannerUI();
           applyFilters();
         });
+        pillsStrip.appendChild(allPill);
 
-        projectCirclesTrack.appendChild(card);
+        projects.forEach((p) => {
+          const chip = document.createElement("button");
+          chip.className = `compact-lao-chip ${String(p.slNo) === String(activeProject) ? "active" : ""}`;
+          chip.textContent = `#${p.slNo} ${p.project.length > 20 ? p.project.substring(0, 20) + "..." : p.project}`;
+          chip.title = p.project;
+          chip.addEventListener("click", () => {
+            activeProject = p.slNo;
+            renderProjectCircles(activeLao, currentItems);
+            updateScopeBannerUI();
+            applyFilters();
+          });
+          pillsStrip.appendChild(chip);
+        });
+
+        projectCirclesTrack.appendChild(spotlight);
       }
       return;
     }
@@ -1300,7 +1381,13 @@ ${statusEmoji} *Current Status:* *${statusBadge}*
      TABLE RENDERING & INTERACTIVITY
   ---------------------------------------------------- */
   function renderTable(data) {
-    tableRecordCount.textContent = `Showing ${data.length} of ${currentItems.length} records`;
+    if (activeProject !== "ALL" && data.length === 1) {
+      tableRecordCount.textContent = `Showing 1 scheme (#${data[0].slNo} ${data[0].project}) • Filtered`;
+    } else if (activeLao !== "ALL") {
+      tableRecordCount.textContent = `Showing ${data.length} schemes under ${activeLao}`;
+    } else {
+      tableRecordCount.textContent = `Showing ${data.length} of ${currentItems.length} records`;
+    }
     const ledgerPill = document.getElementById("ledgerCountPill");
     if (ledgerPill) ledgerPill.textContent = data.length;
     const sidebarBadge = document.getElementById("sidebarLedgerBadge");
