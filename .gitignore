@@ -1,0 +1,7 @@
+.vercel
+__pycache__
+*.pyc
+.env
+check_sheets.py
+test_xlsx_parse.py
+test_smart_header.py
