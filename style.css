@@ -839,6 +839,20 @@ body {
   transform: translateY(-3px);
 }
 
+.lao-circle-card.lao-back-card,
+.project-circle-card.project-back-card {
+  border: 1px dashed rgba(56, 189, 248, 0.5);
+  background: rgba(56, 189, 248, 0.05);
+}
+
+.lao-circle-card.lao-back-card:hover,
+.project-circle-card.project-back-card:hover {
+  background: rgba(56, 189, 248, 0.12);
+  border-color: #38bdf8;
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(56, 189, 248, 0.2);
+}
+
 .lao-ring-wrapper {
   position: relative;
   width: 64px;

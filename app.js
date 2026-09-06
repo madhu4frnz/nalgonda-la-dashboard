@@ -436,6 +436,83 @@ document.addEventListener("DOMContentLoaded", () => {
       { id: "RDO Devarakonda", name: "Devarakonda", short: "DVK" }
     ];
 
+    // When a specific LAO is clicked, display ONLY that LAO and hide all other LAO circles
+    if (activeLao !== "ALL") {
+      // 1. Back button card to restore all authorities
+      const backCard = document.createElement("div");
+      backCard.className = "lao-circle-card lao-back-card";
+      backCard.title = "Click to unhide and view all LAO authorities";
+      backCard.innerHTML = `
+        <div class="lao-ring-wrapper" style="display: flex; align-items: center; justify-content: center;">
+          <span style="font-size: 1.5rem;">🏛️</span>
+        </div>
+        <div class="lao-circle-name" style="color: #38bdf8;">← All Authorities</div>
+        <div class="lao-circle-amount" style="font-size: 0.725rem;">Show All LAOs</div>
+        <div class="lao-circle-stat">Reset Selection</div>
+      `;
+      backCard.addEventListener("click", () => {
+        activeLao = "ALL";
+        activeProject = "ALL";
+        if (laoFilter) laoFilter.value = "ALL";
+        renderLaoCircles(currentItems);
+        renderProjectCircles("ALL", currentItems);
+        updateScopeBannerUI();
+        applyFilters();
+        renderSidebarLaoNav();
+      });
+      laoCirclesTrack.appendChild(backCard);
+
+      // 2. Only display the selected LAO card
+      const selectedLao = laoList.find(l => l.id === activeLao);
+      if (selectedLao) {
+        const filtered = data.filter(d => d.lao === selectedLao.id);
+        const released = filtered.reduce((acc, d) => acc + (d.releasedCr || 0), 0);
+        const disbursed = filtered.reduce((acc, d) => acc + (d.totalDisbursedCr || 0), 0);
+        const schemesCount = filtered.length;
+        const pct = released > 0 ? (disbursed / released) * 100 : 0;
+
+        let ringColor = "#f43f5e";
+        if (pct >= 60) ringColor = "#10b981";
+        else if (pct >= 30) ringColor = "#38bdf8";
+
+        const card = document.createElement("div");
+        card.className = "lao-circle-card active";
+        card.dataset.lao = selectedLao.id;
+        card.title = `Currently viewing ${selectedLao.name}. Click to reset.`;
+        card.innerHTML = `
+          <span class="lao-active-pill"></span>
+          <div class="lao-ring-wrapper">
+            <svg viewBox="0 0 36 36">
+              <path class="lao-ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+              <path class="lao-ring-fill" stroke="${ringColor}" stroke-dasharray="${Math.min(100, Math.max(0, pct)).toFixed(1)}, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+            </svg>
+            <div class="lao-ring-inner">
+              <span class="lao-ring-pct">${pct.toFixed(0)}%</span>
+              <span class="lao-ring-sub">${selectedLao.short}</span>
+            </div>
+          </div>
+          <div class="lao-circle-name">${selectedLao.name}</div>
+          <div class="lao-circle-amount">₹${disbursed.toFixed(1)} Cr</div>
+          <div class="lao-circle-stat">${schemesCount} Schemes (Only Selected)</div>
+        `;
+
+        card.addEventListener("click", () => {
+          activeLao = "ALL";
+          activeProject = "ALL";
+          if (laoFilter) laoFilter.value = "ALL";
+          renderLaoCircles(currentItems);
+          renderProjectCircles("ALL", currentItems);
+          updateScopeBannerUI();
+          applyFilters();
+          renderSidebarLaoNav();
+        });
+
+        laoCirclesTrack.appendChild(card);
+      }
+      return;
+    }
+
+    // Default: render all LAO circles
     laoList.forEach((lao) => {
       let released = 0;
       let disbursed = 0;
@@ -465,7 +542,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const card = document.createElement("div");
       card.className = `lao-circle-card ${isSelected ? "active" : ""}`;
       card.dataset.lao = lao.id;
-      card.title = `Click to filter & deploy projects: ${lao.name} (${pct.toFixed(1)}% disbursed)`;
+      card.title = `Click to filter and view only: ${lao.name} (${pct.toFixed(1)}% disbursed)`;
       card.innerHTML = `
         <span class="lao-active-pill"></span>
         <div class="lao-ring-wrapper">
@@ -493,10 +570,12 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (laoFilter) laoFilter.value = activeLao;
-        updateActiveLaoCircleUI();
+        renderLaoCircles(currentItems);
         renderProjectCircles(activeLao, currentItems);
+        updateActiveLaoCircleUI();
         updateScopeBannerUI();
         applyFilters();
+        renderSidebarLaoNav();
       });
 
       laoCirclesTrack.appendChild(card);
@@ -640,11 +719,83 @@ document.addEventListener("DOMContentLoaded", () => {
     if (projectDrilldownTitleText) {
       projectDrilldownTitleText.textContent = `${laoId} Projects`;
     }
+
+    projectCirclesTrack.innerHTML = "";
+
+    // If a specific project is selected, display ONLY that scheme card and hide all other schemes!
+    if (activeProject !== "ALL") {
+      if (projectCountBadge) {
+        projectCountBadge.textContent = `Viewing Scheme #${activeProject} (Other schemes hidden)`;
+      }
+
+      // Back button to show all schemes under this LAO
+      const backCard = document.createElement("div");
+      backCard.className = "project-circle-card project-back-card";
+      backCard.title = `Click to unhide all ${projects.length} schemes under ${laoId}`;
+      backCard.innerHTML = `
+        <div class="project-ring-wrapper" style="display: flex; align-items: center; justify-content: center;">
+          <span style="font-size: 1.3rem;">📋</span>
+        </div>
+        <div class="project-circle-name" style="color: #38bdf8;">← All Schemes</div>
+        <div class="project-circle-amount" style="font-size: 0.725rem;">Show All (${projects.length})</div>
+        <div class="project-circle-stat">Unhide Schemes</div>
+      `;
+      backCard.addEventListener("click", () => {
+        activeProject = "ALL";
+        renderProjectCircles(activeLao, currentItems);
+        updateScopeBannerUI();
+        applyFilters();
+      });
+      projectCirclesTrack.appendChild(backCard);
+
+      // Only display the selected scheme
+      const proj = projects.find(p => String(p.slNo) === String(activeProject));
+      if (proj) {
+        const rel = proj.releasedCr || 0;
+        const dis = proj.totalDisbursedCr || 0;
+        const pct = rel > 0 ? (dis / rel) * 100 : 0;
+
+        let strokeColor = "#f43f5e";
+        if (pct >= 60) strokeColor = "#10b981";
+        else if (pct >= 30) strokeColor = "#38bdf8";
+
+        const card = document.createElement("div");
+        card.className = "project-circle-card active";
+        card.dataset.projectSl = proj.slNo;
+        card.title = `Currently viewing scheme #${proj.slNo}: ${proj.project}. Click to show all schemes.`;
+        card.innerHTML = `
+          <span class="project-active-pill"></span>
+          <div class="project-ring-wrapper">
+            <svg viewBox="0 0 36 36">
+              <path class="project-ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+              <path class="project-ring-fill" stroke="${strokeColor}" stroke-dasharray="${Math.min(100, Math.max(0, pct)).toFixed(1)}, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+            </svg>
+            <div class="project-ring-inner">
+              <span class="project-ring-pct">${pct.toFixed(0)}%</span>
+              <span class="project-ring-sl">#${proj.slNo}</span>
+            </div>
+          </div>
+          <div class="project-circle-name" title="${proj.project}">${proj.project}</div>
+          <div class="project-circle-amount">₹${dis.toFixed(1)} Cr</div>
+          <div class="project-circle-stat">${(proj.paymentCompletedExtentAc || 0).toFixed(0)} Ac • ${proj.beneficiariesPaid || 0} Ben.</div>
+        `;
+
+        card.addEventListener("click", () => {
+          activeProject = "ALL";
+          renderProjectCircles(activeLao, currentItems);
+          updateScopeBannerUI();
+          applyFilters();
+        });
+
+        projectCirclesTrack.appendChild(card);
+      }
+      return;
+    }
+
+    // Default when activeProject === "ALL": show all schemes under this LAO
     if (projectCountBadge) {
       projectCountBadge.textContent = `${projects.length} Schemes Deployed`;
     }
-
-    projectCirclesTrack.innerHTML = "";
 
     // Card 0: "All Schemes in Authority" Card
     const allCard = document.createElement("div");
@@ -676,7 +827,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     allCard.addEventListener("click", () => {
       activeProject = "ALL";
-      updateProjectCircleUI();
+      renderProjectCircles(activeLao, currentItems);
       updateScopeBannerUI();
       applyFilters();
     });
@@ -690,16 +841,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const isSelected = String(activeProject) === String(proj.slNo);
 
       let strokeColor = "#f43f5e";
-      if (pct >= 60) {
-        strokeColor = "#10b981";
-      } else if (pct >= 30) {
-        strokeColor = "#38bdf8";
-      }
+      if (pct >= 60) strokeColor = "#10b981";
+      else if (pct >= 30) strokeColor = "#38bdf8";
 
       const card = document.createElement("div");
       card.className = `project-circle-card ${isSelected ? "active" : ""}`;
       card.dataset.projectSl = proj.slNo;
-      card.title = `Click to show stats on top: ${proj.project} (${pct.toFixed(1)}% disbursed)`;
+      card.title = `Click to show only this scheme: ${proj.project} (${pct.toFixed(1)}% disbursed)`;
 
       card.innerHTML = `
         <span class="project-active-pill"></span>
@@ -724,7 +872,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
           activeProject = proj.slNo;
         }
-        updateProjectCircleUI();
+        renderProjectCircles(activeLao, currentItems);
         updateScopeBannerUI();
         applyFilters();
 
@@ -890,9 +1038,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const filtered = getFilteredData();
     const sorted = getSortedData(filtered);
 
+    // If viewing a single specific scheme, auto-expand its full ground details and remarks
+    if (activeProject !== "ALL" && filtered.length === 1) {
+      expandedRows.add(filtered[0].slNo);
+    }
+
     updateKPICards(filtered);
     renderTable(sorted);
     updateCharts(filtered);
+    renderBottleneckGrid();
   }
 
   /* ----------------------------------------------------
@@ -1352,7 +1506,36 @@ ${statusEmoji} *Current Status:* *${statusBadge}*
 
     const highlights = typeof BOTTLENECK_HIGHLIGHTS !== "undefined" ? BOTTLENECK_HIGHLIGHTS : [];
 
-    highlights.forEach((item) => {
+    // Filter bottlenecks if a specific LAO or scheme is selected
+    const filteredHighlights = highlights.filter((item) => {
+      if (activeLao !== "ALL" && item.lao !== activeLao && !item.lao.includes(activeLao)) {
+        return false;
+      }
+      if (activeProject !== "ALL") {
+        const p = currentItems.find((d) => String(d.slNo) === String(activeProject));
+        if (p) {
+          const tLower = item.title.toLowerCase();
+          const pLower = p.project.toLowerCase();
+          if (!tLower.includes(pLower) && !pLower.includes(tLower) && !tLower.includes(String(p.slNo))) {
+            return false;
+          }
+        }
+      }
+      return true;
+    });
+
+    const displayList = (activeLao !== "ALL" || activeProject !== "ALL") ? filteredHighlights : highlights;
+
+    if (displayList.length === 0) {
+      container.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 2rem; color: var(--text-muted); background: var(--bg-card); border-radius: var(--radius-md); border: 1px dashed var(--border-color);">
+          No active high-priority obstacles flagged for this selection.
+        </div>
+      `;
+      return;
+    }
+
+    displayList.forEach((item) => {
       const card = document.createElement("div");
       card.className = `bottleneck-card ${item.urgency}`;
       card.innerHTML = `
@@ -1706,17 +1889,19 @@ ${item.actionItem}
       laoFilter.addEventListener("change", (e) => {
         activeLao = e.target.value;
         activeProject = "ALL";
-        updateActiveLaoCircleUI();
+        renderLaoCircles(currentItems);
         renderProjectCircles(activeLao, currentItems);
+        updateActiveLaoCircleUI();
         updateScopeBannerUI();
         applyFilters();
+        renderSidebarLaoNav();
       });
     }
 
     if (closeProjectDrilldownBtn) {
       closeProjectDrilldownBtn.addEventListener("click", () => {
         activeProject = "ALL";
-        updateProjectCircleUI();
+        renderProjectCircles(activeLao, currentItems);
         updateScopeBannerUI();
         applyFilters();
       });
@@ -1725,7 +1910,7 @@ ${item.actionItem}
     if (resetProjectScopeBtn) {
       resetProjectScopeBtn.addEventListener("click", () => {
         activeProject = "ALL";
-        updateProjectCircleUI();
+        renderProjectCircles(activeLao, currentItems);
         updateScopeBannerUI();
         applyFilters();
       });
@@ -1736,10 +1921,12 @@ ${item.actionItem}
         activeLao = "ALL";
         activeProject = "ALL";
         if (laoFilter) laoFilter.value = "ALL";
-        updateActiveLaoCircleUI();
+        renderLaoCircles(currentItems);
         renderProjectCircles("ALL", currentItems);
+        updateActiveLaoCircleUI();
         updateScopeBannerUI();
         applyFilters();
+        renderSidebarLaoNav();
       });
     }
 
