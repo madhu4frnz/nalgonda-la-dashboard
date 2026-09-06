@@ -905,21 +905,32 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ----------------------------------------------------
      WHATSAPP STATUS MESSAGE GENERATION & SHARING
   ---------------------------------------------------- */
+  function getVisualProgressBar(pct) {
+    const total = 10;
+    const clamped = Math.min(100, Math.max(0, pct || 0));
+    const filled = Math.min(total, Math.max(0, Math.round((clamped / 100) * total)));
+    const empty = total - filled;
+    return "▰".repeat(filled) + "▱".repeat(empty);
+  }
+
   function generateWhatsAppProjectMessage(p, reportDate) {
     const rel = p.releasedCr || 0;
     const dis = p.totalDisbursedCr || 0;
     const bal = p.balanceCr || 0;
-    const pct = rel > 0 ? ((dis / rel) * 100).toFixed(1) : "0.0";
+    const pctNum = rel > 0 ? (dis / rel) * 100 : 0;
+    const pct = pctNum.toFixed(1);
 
     const totalBen = p.totalBeneficiaries || 0;
     const paidBen = p.beneficiariesPaid || 0;
     const balBen = p.balanceBeneficiaries || 0;
-    const benPct = totalBen > 0 ? ((paidBen / totalBen) * 100).toFixed(1) : "0.0";
+    const benPctNum = totalBen > 0 ? (paidBen / totalBen) * 100 : 0;
+    const benPct = benPctNum.toFixed(1);
 
     const totalExt = (p.totalExtentAc || 0).toFixed(2);
     const compExt = (p.paymentCompletedExtentAc || 0).toFixed(2);
     const balExt = (p.balanceExtentAc || 0).toFixed(2);
-    const extPct = (p.totalExtentAc && p.totalExtentAc > 0) ? (((p.paymentCompletedExtentAc || 0) / p.totalExtentAc) * 100).toFixed(1) : "0.0";
+    const extPctNum = (p.totalExtentAc && p.totalExtentAc > 0) ? (((p.paymentCompletedExtentAc || 0) / p.totalExtentAc) * 100) : 0;
+    const extPct = extPctNum.toFixed(1);
 
     const dtToday = (p.disbursedTodayCr || 0).toFixed(2);
     const dtYest = (p.disbursedYesterdayCr || 0).toFixed(2);
@@ -929,48 +940,69 @@ document.addEventListener("DOMContentLoaded", () => {
     const dateStr = reportDate || currentSelectedSheet || "Current Report";
 
     let statusEmoji = "⏳";
+    let statusBadge = p.status || "In Progress";
     const s = (p.status || "").toLowerCase();
-    if (s.includes("completed")) statusEmoji = "✅";
-    else if (s.includes("progress")) statusEmoji = "⚡";
-    else if (s.includes("pending") || s.includes("enquiry")) statusEmoji = "⚠️";
+    if (s.includes("completed")) {
+      statusEmoji = "✅";
+      statusBadge = "COMPLETED";
+    } else if (s.includes("progress")) {
+      statusEmoji = "⚡";
+      statusBadge = "IN PROGRESS";
+    } else if (s.includes("pending") || s.includes("enquiry") || s.includes("stage")) {
+      statusEmoji = "⚠️";
+      statusBadge = (p.status || "PENDING").toUpperCase();
+    }
 
-    return `🏛️ *GOVERNMENT OF TELANGANA*
-*Land Acquisition & Payment Disbursement Monitor*
-*District Collectorate, Nalgonda*
-────────────────────────
-📌 *PROJECT:* *${p.project}* (Sl #${p.slNo})
-🏢 *Authority (LAO):* ${p.lao}
-${statusEmoji} *Status:* *${p.status || "In Progress"}*
+    return `━━━━━━━━━━━━━━━━━━━━━━
+🏛️ *GOVERNMENT OF TELANGANA*
+📊 *Land Acquisition & Payment Monitor*
+🏢 *District Collectorate, Nalgonda*
+━━━━━━━━━━━━━━━━━━━━━━
 
-💰 *FINANCIAL PROGRESS:*
-• Total Released: *₹${rel.toFixed(2)} Cr*
-• Disbursed Till Date: *₹${dis.toFixed(2)} Cr* (${pct}%)
-• Disbursed Today: *₹${dtToday} Cr*
-• Disbursed Upto Yesterday: *₹${dtYest} Cr*
-• Balance to Disburse: *₹${bal.toFixed(2)} Cr*
+📍 *PROJECT DETAILS*
+🔹 *Project:* *${p.project}* (Sl #${p.slNo})
+🏢 *Authority (LAO):* 🏛️ *${p.lao}*
+${statusEmoji} *Current Status:* *${statusBadge}*
 
-👥 *BENEFICIARIES (AWARDEES):*
-• Total Awardees: *${totalBen}*
-• Awardees Paid: *${paidBen}* (${benPct}%)
-• Balance Awardees: *${balBen}*
+━━━━━━━━━━━━━━━━━━━━━━
+💰 *FINANCIAL DISBURSEMENT*
+📈 Progress: [${getVisualProgressBar(pctNum)}] *${pct}%*
+💵 Total Released: *₹${rel.toFixed(2)} Cr*
+✅ Total Disbursed: *₹${dis.toFixed(2)} Cr*
+⚡ Disbursed Today: *₹${dtToday} Cr*
+⏳ Upto Yesterday: *₹${dtYest} Cr*
+🔴 Balance to Disburse: *₹${bal.toFixed(2)} Cr*
 
-📐 *LAND EXTENT:*
-• Total Extent: *${totalExt} Ac*
-• Payment Completed: *${compExt} Ac* (${extPct}%)
-• Balance Extent: *${balExt} Ac*
+━━━━━━━━━━━━━━━━━━━━━━
+👥 *BENEFICIARIES (AWARDEES)*
+📊 Covered: [${getVisualProgressBar(benPctNum)}] *${benPct}%*
+🎯 Total Awardees: *${totalBen.toLocaleString()}*
+🟢 Awardees Paid: *${paidBen.toLocaleString()}*
+🟡 Pending Payment: *${balBen.toLocaleString()}*
 
-📋 *ADMINISTRATIVE & RECONCILIATION:*
-• DTO Token No: ${p.dtoToken || "N/A"}
-• Date of Credit: ${p.creditDate || "N/A"}
-• Possession Handed Over: ${p.possession || "Pending / In Progress"}
-• Post-Award Details: Completed ${postComp} | Balance ${postBal}
-• Bottleneck Category: ${p.bottleneckCategory && p.bottleneckCategory !== "None" ? p.bottleneckCategory : "None / Clear"}
+━━━━━━━━━━━━━━━━━━━━━━
+📐 *LAND ACQUISITION EXTENT*
+📊 Secured: [${getVisualProgressBar(extPctNum)}] *${extPct}%*
+🌱 Total Extent: *${totalExt} Ac*
+🟢 Payment Completed: *${compExt} Ac*
+🟠 Balance Extent: *${balExt} Ac*
 
-📝 *FIELD REMARKS & GROUND STATUS:*
-${p.remarks ? p.remarks : "No specific remarks recorded."}
-────────────────────────
+━━━━━━━━━━━━━━━━━━━━━━
+📑 *ADMINISTRATIVE & TOKEN DETAILS*
+🔖 DTO Token: \`${p.dtoToken || "N/A"}\`
+🗓️ Date of Credit: *${p.creditDate || "N/A"}*
+🚜 Land Possession: *${p.possession || "Pending / In Progress"}*
+📋 Post-Award Details: Completed *${postComp}* | Balance *${postBal}*
+⚠️ Bottleneck Category: *${p.bottleneckCategory && p.bottleneckCategory !== "None" ? p.bottleneckCategory : "None / Clear"}*
+
+━━━━━━━━━━━━━━━━━━━━━━
+📝 *FIELD REMARKS & GROUND STATUS*
+💬 _"${p.remarks ? p.remarks : "No specific remarks recorded."}"_
+
+━━━━━━━━━━━━━━━━━━━━━━
 📅 *Report As On:* ${dateStr}
-🔗 *Live Portal:* https://nalgonda-la-dashboard.vercel.app/`;
+🌐 *Live Dashboard:* https://nalgonda-la-dashboard.vercel.app/
+━━━━━━━━━━━━━━━━━━━━━━`;
   }
 
   function sendProjectWhatsApp(slNo) {

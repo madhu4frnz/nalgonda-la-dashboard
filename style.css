@@ -74,12 +74,13 @@ body {
 
 /* App Container */
 .app-wrapper {
-  max-width: 1540px;
+  max-width: 1200px;
+  width: 100%;
   margin: 0 auto;
-  padding: 1.5rem 2rem;
+  padding: 1.25rem 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 1.75rem;
+  gap: 1.25rem;
 }
 
 /* Header */
@@ -87,7 +88,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.25rem 1.75rem;
+  padding: 1rem 1.35rem;
   background: var(--bg-card);
   backdrop-filter: blur(12px);
   border: 1px solid var(--border-color);
@@ -95,6 +96,8 @@ body {
   box-shadow: var(--shadow-md);
   position: relative;
   overflow: hidden;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .header-bar::before {
@@ -314,7 +317,7 @@ body {
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 1.25rem;
+  gap: 1rem;
 }
 
 .kpi-card {
@@ -322,7 +325,7 @@ body {
   backdrop-filter: blur(12px);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
-  padding: 1.4rem;
+  padding: 1.15rem 1.25rem;
   box-shadow: var(--shadow-md);
   position: relative;
   overflow: hidden;
@@ -497,8 +500,8 @@ body {
 
 .lao-circles-track {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 0.85rem;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.75rem;
   overflow-x: auto;
   padding-bottom: 0.4rem;
   -webkit-overflow-scrolling: touch;
@@ -1260,8 +1263,9 @@ thead {
 }
 
 th {
-  padding: 0.85rem 1rem;
+  padding: 0.7rem 0.75rem;
   font-weight: 600;
+  font-size: 0.8rem;
   color: var(--text-secondary);
   border-bottom: 1px solid var(--border-color);
   white-space: nowrap;
@@ -1291,10 +1295,11 @@ th.sorted-desc::after {
 }
 
 td {
-  padding: 0.9rem 1rem;
+  padding: 0.7rem 0.75rem;
   border-bottom: 1px solid var(--border-color);
   color: var(--text-primary);
   white-space: nowrap;
+  font-size: 0.8rem;
 }
 
 tbody tr {
