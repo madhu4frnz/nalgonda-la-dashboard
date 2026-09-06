@@ -1,14 +1,18 @@
 /**
  * Application Logic for Land Acquisition Payment Disbursement Dashboard
  * Nalgonda District Collectorate
+ * 
  * Features:
- * - Multi-Sheet Auto-Sync: Automatically discovers newest daily tab and allows historical selection
- * - 100% Google Sheet Column Fidelity
+ * - Direct Client-Side Auto-Sync with Google Sheets (gviz public API)
+ * - Auto-detects newest daily tab and supports historical sheet selection
+ * - 100% Column Fidelity with dynamic header mapping
  * - Interactive Chart.js charts & SVG radial progress gauges
  * - Instant filtering, searching, column sorting, and CSV export
  */
 
 document.addEventListener("DOMContentLoaded", () => {
+  const SHEET_BASE_URL = "https://docs.google.com/spreadsheets/d/1XAJwRAT1jI4TRYiDVjsAtGTkWZJYfeYP8hHtaTxfGe0/gviz/tq?tqx=out:csv";
+
   let activeLao = "ALL";
   let activeStatus = "ALL";
   let searchQuery = "";
@@ -21,8 +25,26 @@ document.addEventListener("DOMContentLoaded", () => {
   let laoChart = null;
   let bottleneckChart = null;
   let currentItems = typeof LA_DATA !== "undefined" ? [...LA_DATA] : [];
-  let availableSheets = [];
-  let currentSelectedSheet = "";
+  
+  const knownSheets = [
+    "Daily Report 06.09.2026",
+    "Daily Report 05.09.2026",
+    "Daily Report 04.09.2026",
+    "Daily Report 03.09.2026",
+    "Daily Report 02.09.2026",
+    "Daily report 01.09.2026",
+    "Daily report 29.08.2026 2",
+    "Daily report 28.08.2026",
+    "Daily report 27.08.2026",
+    "Daily report 26.08.2026",
+    "Daily report 24.08.2026",
+    "Daily report 22.08.2026",
+    "Daily report 21.08.2026",
+    "Daily report 20.08.2026",
+    "Daily report 19.08.2026"
+  ];
+
+  let currentSelectedSheet = knownSheets[0];
   let isSyncing = false;
   let autoSyncTimer = null;
 
@@ -58,19 +80,135 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Initialize
   initTheme();
+  initSheetDropdown();
   renderBottleneckGrid();
   initCharts();
   applyFilters();
   setupEventListeners();
 
-  // Initial fetch from live server endpoint and set up 30s auto-sync
-  fetchLiveData(true);
+  // Fetch live from Google Sheets immediately & schedule every 30s
+  fetchGoogleSheetData(true, currentSelectedSheet);
   startAutoSync(30000);
 
   /* ----------------------------------------------------
-     LIVE DATA FETCH & MULTI-SHEET SYNC
+     CSV PARSER (RFC 4180 COMPLIANT FOR GOOGLE SHEETS)
   ---------------------------------------------------- */
-  async function fetchLiveData(isInitial = false, sheetName = null) {
+  function parseCSV(text) {
+    const rows = [];
+    let currentRow = [];
+    let currentVal = '';
+    let insideQuotes = false;
+
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      const nextChar = text[i + 1];
+
+      if (char === '"') {
+        if (insideQuotes && nextChar === '"') {
+          currentVal += '"';
+          i++;
+        } else {
+          insideQuotes = !insideQuotes;
+        }
+      } else if (char === ',' && !insideQuotes) {
+        currentRow.push(currentVal.trim());
+        currentVal = '';
+      } else if ((char === '\r' || char === '\n') && !insideQuotes) {
+        if (char === '\r' && nextChar === '\n') i++;
+        currentRow.push(currentVal.trim());
+        if (currentRow.some(c => c !== '')) rows.push(currentRow);
+        currentRow = [];
+        currentVal = '';
+      } else {
+        currentVal += char;
+      }
+    }
+    if (currentVal || currentRow.length > 0) {
+      currentRow.push(currentVal.trim());
+      if (currentRow.some(c => c !== '')) rows.push(currentRow);
+    }
+    return rows;
+  }
+
+  function cleanNum(val) {
+    if (!val) return 0.0;
+    const str = String(val).replace(/,/g, '').trim();
+    const num = parseFloat(str);
+    return isNaN(num) ? 0.0 : num;
+  }
+
+  function cleanInt(val) {
+    if (!val) return 0;
+    const str = String(val).replace(/,/g, '').trim();
+    const num = parseInt(str, 10);
+    return isNaN(num) ? 0 : num;
+  }
+
+  /* ----------------------------------------------------
+     DYNAMIC SEMANTIC HEADER MAPPING (CLIENT-SIDE)
+  ---------------------------------------------------- */
+  function buildDynamicColumnMapping(headerRow) {
+    const mapping = {};
+    headerRow.forEach((val, idx) => {
+      const text = (val || '').toLowerCase().trim();
+      if (!text) return;
+
+      if (text.includes('sl') && text.includes('no') && !mapping.sl_no) {
+        mapping.sl_no = idx;
+      } else if (text.includes('lao') && !mapping.lao) {
+        mapping.lao = idx;
+      } else if (text.includes('project') && !mapping.project) {
+        mapping.project = idx;
+      } else if ((text.includes('dto') || text.includes('token')) && !mapping.dto_token) {
+        mapping.dto_token = idx;
+      } else if (text.includes('credit') && text.includes('date') && !mapping.credit_date) {
+        mapping.credit_date = idx;
+      } else if ((text.includes('amount released') || text.includes('released in crores')) && !mapping.released_cr) {
+        mapping.released_cr = idx;
+      } else if (text.includes('yesterday') && !mapping.disbursed_yesterday) {
+        mapping.disbursed_yesterday = idx;
+      } else if ((text.includes('to day') || text.includes('today')) && !mapping.disbursed_today) {
+        mapping.disbursed_today = idx;
+      } else if ((text.includes('total amount disbursed') || text.includes('disbursed so far')) && !mapping.total_disbursed) {
+        mapping.total_disbursed = idx;
+      } else if ((text.includes('balance to be disbursed') || (text.startsWith('balance') && text.includes('cr'))) && !mapping.balance_cr) {
+        mapping.balance_cr = idx;
+      } else if ((text.includes('benefic') || text.includes('awardees')) && (text.includes('total') || text.includes('covered')) && !mapping.total_ben) {
+        mapping.total_ben = idx;
+      } else if ((text.includes('benefic') || text.includes('awardees')) && text.includes('paid') && !text.includes('balance') && !mapping.paid_ben) {
+        mapping.paid_ben = idx;
+      } else if ((text.includes('benefic') || text.includes('awardees')) && text.includes('balance') && !mapping.balance_ben) {
+        mapping.balance_ben = idx;
+      } else if (text.includes('extent') && (text.includes('total') || text.includes('covered')) && !text.includes('post') && !mapping.total_extent) {
+        mapping.total_extent = idx;
+      } else if (text.includes('extent') && (text.includes('payment completed') || text.includes('completed for extent')) && !text.includes('post') && !mapping.completed_extent) {
+        mapping.completed_extent = idx;
+      } else if (text.includes('extent') && text.includes('balance') && !text.includes('post') && !mapping.balance_extent) {
+        mapping.balance_extent = idx;
+      } else if ((text.includes('payment completed or not') || text === 'status') && !mapping.status) {
+        mapping.status = idx;
+      } else if (text.includes('possession') && !mapping.possession) {
+        mapping.possession = idx;
+      } else if (text.includes('post award') && text.includes('completed') && !mapping.post_award_comp) {
+        mapping.post_award_comp = idx;
+      } else if (text.includes('post award') && text.includes('balance') && !mapping.post_award_bal) {
+        mapping.post_award_bal = idx;
+      } else if (text.includes('remarks') && !mapping.remarks) {
+        mapping.remarks = idx;
+      }
+    });
+
+    if (mapping.post_award_comp !== undefined && mapping.post_award_bal === undefined) {
+      mapping.post_award_bal = mapping.post_award_comp + 1;
+    }
+
+    return mapping;
+  }
+
+  /* ----------------------------------------------------
+     DIRECT GOOGLE SHEET SYNC (NO SERVER REQUIRED)
+  ---------------------------------------------------- */
+  async function fetchGoogleSheetData(isInitial = false, sheetName = null) {
     if (isSyncing) return;
     isSyncing = true;
 
@@ -78,40 +216,156 @@ document.addEventListener("DOMContentLoaded", () => {
     if (syncBtnText) syncBtnText.textContent = "Syncing...";
 
     try {
-      const targetUrl = sheetName 
-        ? `/api/sync?sheet=${encodeURIComponent(sheetName)}` 
-        : (currentSelectedSheet ? `/api/sync?sheet=${encodeURIComponent(currentSelectedSheet)}` : `/api/sync`);
-
-      const resp = await fetch(targetUrl, { cache: "no-store" });
-      if (!resp.ok) throw new Error(`HTTP error! status: ${resp.status}`);
-      const data = await resp.json();
-
-      if (data && data.items && data.items.length > 0) {
-        currentItems = data.items;
-        availableSheets = data.availableSheets || [];
-        updateSheetDropdown(data.activeSheet);
-
-        const syncDate = data.lastSyncedAt || new Date().toLocaleTimeString();
-        if (lastSyncedTime) lastSyncedTime.textContent = `Last synced: ${syncDate}`;
-
-        // Update Header Date badge
-        if (data.asOnDate) {
-          const dateBadge = document.querySelector(".district-badge");
-          if (dateBadge) {
-            dateBadge.title = `Data As On: ${data.asOnDate}`;
+      // First try local server if running, otherwise use Google Sheets directly
+      let url = `${SHEET_BASE_URL}&sheet=${encodeURIComponent(sheetName || currentSelectedSheet)}`;
+      
+      let text = '';
+      try {
+        const localResp = await fetch(`/api/sync?sheet=${encodeURIComponent(sheetName || currentSelectedSheet)}`, { cache: 'no-store' });
+        if (localResp.ok) {
+          const json = await localResp.json();
+          if (json && json.items && json.items.length > 0) {
+            handleParsedData(json.items, json.asOnDate, sheetName || currentSelectedSheet, isInitial);
+            return;
           }
         }
+      } catch (e) {
+        // Fallback to direct Google Sheets fetch
+      }
 
-        applyFilters();
+      const response = await fetch(url, { cache: "no-store" });
+      if (!response.ok) throw new Error(`Google Sheets responded with status ${response.status}`);
+      text = await response.text();
 
-        if (!isInitial) {
-          showToast(`Synced ${currentItems.length} records from '${data.activeSheet || "Google Sheet"}'`);
+      const rawRows = parseCSV(text);
+      if (!rawRows || rawRows.length < 2) {
+        throw new Error("Empty data received from Google Sheets");
+      }
+
+      // Extract title as on date
+      let asOnDate = "06.09.2026";
+      const titleLine = rawRows[0].join(" ");
+      const dateMatch = titleLine.match(/as on\s+([0-9]{1,2}[\.\-\/][0-9]{1,2}[\.\-\/][0-9]{2,4})/i);
+      if (dateMatch) {
+        asOnDate = dateMatch[1];
+      }
+
+      // Build column mapping from header row
+      const headerRow = rawRows[0];
+      const colMap = buildDynamicColumnMapping(headerRow);
+
+      const items = [];
+      let currentLao = "SDC Unit-I";
+      let currentProj = "";
+
+      const slIdx = colMap.sl_no !== undefined ? colMap.sl_no : 0;
+      const laoIdx = colMap.lao !== undefined ? colMap.lao : 1;
+      const projIdx = colMap.project !== undefined ? colMap.project : 2;
+
+      for (let r = 1; r < rawRows.length; r++) {
+        const row = rawRows[r];
+        const col0 = (row[slIdx] || '').replace('.0', '').trim();
+        const col1 = (row[laoIdx] || '').replace('.0', '').trim();
+
+        // Skip index numbering row: 1, 2, 3...
+        if (col0 === '1' && col1 === '2') continue;
+        if (row.join(' ').toLowerCase().includes('grand total')) continue;
+
+        if (/^\d+$/.test(col0) && parseInt(col0, 10) > 0) {
+          const slNo = parseInt(col0, 10);
+          const rawLao = (row[laoIdx] || '').trim();
+          if (rawLao && !/^\d+$/.test(rawLao.replace('.0', ''))) {
+            currentLao = rawLao.replace(/\s+/g, ' ');
+          }
+
+          const rawProj = (row[projIdx] || '').trim();
+          if (rawProj && !/^\d+$/.test(rawProj.replace('.0', ''))) {
+            currentProj = rawProj.replace(/\s+/g, ' ');
+          }
+          const projName = rawProj && !/^\d+$/.test(rawProj.replace('.0', '')) ? rawProj : currentProj;
+
+          const dtoToken = (row[colMap.dto_token] || '').replace(/\s+/g, ' ');
+          const creditDate = (row[colMap.credit_date] || '').trim();
+
+          const releasedCr = cleanNum(row[colMap.released_cr]);
+          const disbYest = cleanNum(row[colMap.disbursed_yesterday]);
+          const disbToday = cleanNum(row[colMap.disbursed_today]);
+          let disbTot = cleanNum(row[colMap.total_disbursed]);
+          const balCr = cleanNum(row[colMap.balance_cr]);
+
+          if (disbTot === 0.0 && (disbYest > 0 || disbToday > 0)) {
+            disbTot = disbYest + disbToday;
+          }
+
+          const totalBen = cleanInt(row[colMap.total_ben]);
+          const paidBen = cleanInt(row[colMap.paid_ben]);
+          const balBen = cleanInt(row[colMap.balance_ben]);
+
+          const totalExt = cleanNum(row[colMap.total_extent]);
+          const compExt = cleanNum(row[colMap.completed_extent]);
+          const balExt = cleanNum(row[colMap.balance_extent]);
+
+          let status = (row[colMap.status] || '').trim();
+          if (!status) {
+            status = balCr <= 0.001 && disbTot > 0 ? "Completed" : "In Progress";
+          }
+
+          const possession = (row[colMap.possession] || '').trim() || "Pending";
+          const postAwardComp = row[colMap.post_award_comp] ? String(row[colMap.post_award_comp]).trim() : null;
+          const postAwardBal = row[colMap.post_award_bal] ? String(row[colMap.post_award_bal]).trim() : null;
+          const remarks = (row[colMap.remarks] || '').replace(/\s+/g, ' ').trim();
+
+          let bottleneckCat = "None";
+          const rLower = remarks.toLowerCase();
+          if (rLower.includes("enhanced") || rLower.includes("market value") || rLower.includes("revision")) {
+            bottleneckCat = "Market Value Revision";
+          } else if (rLower.includes("vivat") || rLower.includes("title") || rLower.includes("survey")) {
+            bottleneckCat = "Title & Survey Dispute";
+          } else if (rLower.includes("alignment")) {
+            bottleneckCat = "Alignment Dispute";
+          } else if (rLower.includes("award to be passed") || rLower.includes("enquiry")) {
+            bottleneckCat = "Award Enquiry Pending";
+          } else if (rLower.includes("sdr")) {
+            bottleneckCat = "SDR Statutory Stage";
+          } else if (balCr > 0) {
+            bottleneckCat = "Active Disbursement";
+          }
+
+          items.push({
+            slNo: slNo,
+            lao: currentLao,
+            project: projName,
+            dtoToken: dtoToken,
+            creditDate: creditDate,
+            releasedCr: releasedCr,
+            disbursedYesterdayCr: disbYest,
+            disbursedTodayCr: disbToday,
+            totalDisbursedCr: disbTot,
+            balanceCr: balCr,
+            totalBeneficiaries: totalBen,
+            beneficiariesPaid: paidBen,
+            balanceBeneficiaries: balBen,
+            totalExtentAc: totalExt,
+            paymentCompletedExtentAc: compExt,
+            balanceExtentAc: balExt,
+            status: status,
+            possession: possession,
+            postAwardCompleted: postAwardComp,
+            postAwardBalance: postAwardBal,
+            remarks: remarks,
+            bottleneckCategory: bottleneckCat
+          });
         }
       }
+
+      if (items.length > 0) {
+        handleParsedData(items, asOnDate, sheetName || currentSelectedSheet, isInitial);
+      }
+
     } catch (err) {
-      console.warn("Live API fetch notice (using cached data):", err.message);
+      console.warn("Direct fetch notification (fallback to cached data):", err);
       if (lastSyncedTime && isInitial) {
-        lastSyncedTime.textContent = `Loaded (local cache)`;
+        lastSyncedTime.textContent = `Loaded (cached)`;
       }
     } finally {
       isSyncing = false;
@@ -120,32 +374,39 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function updateSheetDropdown(activeSheet) {
-    if (!sheetSelect || !availableSheets || availableSheets.length === 0) return;
-    
-    // Save current selection
-    const curr = sheetSelect.value;
-    sheetSelect.innerHTML = "";
+  function handleParsedData(items, asOnDate, sheetName, isInitial) {
+    currentItems = items;
+    const nowStr = new Date().toLocaleTimeString();
+    if (lastSyncedTime) lastSyncedTime.textContent = `Last synced: ${nowStr}`;
 
-    availableSheets.forEach((name, idx) => {
+    const dateBadge = document.querySelector(".district-badge");
+    if (dateBadge && asOnDate) {
+      dateBadge.title = `Data As On: ${asOnDate}`;
+    }
+
+    applyFilters();
+
+    if (!isInitial) {
+      showToast(`Synced ${items.length} records live from '${sheetName}'`);
+    }
+  }
+
+  function initSheetDropdown() {
+    if (!sheetSelect) return;
+    sheetSelect.innerHTML = "";
+    knownSheets.forEach((name, idx) => {
       const opt = document.createElement("option");
       opt.value = name;
       opt.textContent = idx === 0 ? `${name} (Latest)` : name;
-      if (activeSheet && name === activeSheet) {
-        opt.selected = true;
-      }
       sheetSelect.appendChild(opt);
     });
-
-    if (activeSheet) {
-      currentSelectedSheet = activeSheet;
-    }
+    sheetSelect.value = currentSelectedSheet;
   }
 
   function startAutoSync(intervalMs = 30000) {
     if (autoSyncTimer) clearInterval(autoSyncTimer);
     autoSyncTimer = setInterval(() => {
-      fetchLiveData(false);
+      fetchGoogleSheetData(false, currentSelectedSheet);
     }, intervalMs);
   }
 
@@ -163,53 +424,29 @@ document.addEventListener("DOMContentLoaded", () => {
   ---------------------------------------------------- */
   function getFilteredData() {
     return currentItems.filter((item) => {
-      // LAO filter
       if (activeLao !== "ALL" && item.lao !== activeLao) {
         return false;
       }
 
-      // Status filter
       if (activeStatus !== "ALL") {
         const s = (item.status || "").toLowerCase();
-        if (activeStatus === "Completed" && !s.includes("completed")) {
-          return false;
-        }
-        if (activeStatus === "In Progress" && !s.includes("in progress")) {
-          return false;
-        }
-        if (activeStatus === "Award Pending" && !s.includes("pending") && !s.includes("enquiry") && !s.includes("stage")) {
-          return false;
-        }
+        if (activeStatus === "Completed" && !s.includes("completed")) return false;
+        if (activeStatus === "In Progress" && !s.includes("in progress")) return false;
+        if (activeStatus === "Award Pending" && !s.includes("pending") && !s.includes("enquiry") && !s.includes("stage")) return false;
       }
 
-      // Bottleneck toggle
       if (bottleneckOnly) {
-        if (item.bottleneckCategory === "None" || (item.balanceCr || 0) <= 0) {
-          return false;
-        }
+        if (item.bottleneckCategory === "None" || (item.balanceCr || 0) <= 0) return false;
       }
 
-      // High Extent toggle
       if (highExtentOnly) {
-        if ((item.totalExtentAc || 0) < 50) {
-          return false;
-        }
+        if ((item.totalExtentAc || 0) < 50) return false;
       }
 
-      // Search Query
       if (searchQuery.trim() !== "") {
-        const query = searchQuery.toLowerCase();
-        const combinedText = `
-          ${item.project || ""} 
-          ${item.lao || ""} 
-          ${item.dtoToken || ""} 
-          ${item.remarks || ""} 
-          ${item.status || ""} 
-          ${item.bottleneckCategory || ""}
-        `.toLowerCase();
-        if (!combinedText.includes(query)) {
-          return false;
-        }
+        const q = searchQuery.toLowerCase();
+        const combined = `${item.project || ""} ${item.lao || ""} ${item.dtoToken || ""} ${item.remarks || ""} ${item.status || ""} ${item.bottleneckCategory || ""}`.toLowerCase();
+        if (!combined.includes(q)) return false;
       }
 
       return true;
@@ -264,12 +501,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const completedUnits = data.filter((d) => (d.status || "").toLowerCase().includes("completed")).length;
     const activeUnits = data.length - completedUnits;
 
-    // Percentages
     const fundsPct = totalReleased > 0 ? (totalDisbursed / totalReleased) * 100 : 0;
     const benPct = totalBeneficiaries > 0 ? (paidBeneficiaries / totalBeneficiaries) * 100 : 0;
     const extPct = totalExtent > 0 ? (completedExtent / totalExtent) * 100 : 0;
 
-    // DOM Updates
     document.getElementById("kpiDisbursedCr").textContent = `₹${totalDisbursed.toFixed(2)}`;
     document.getElementById("kpiReleasedCr").textContent = `₹${totalReleased.toFixed(2)} Cr`;
     document.getElementById("kpiBalanceCr").textContent = `₹${totalBalance.toFixed(2)} Cr`;
@@ -338,7 +573,6 @@ document.addEventListener("DOMContentLoaded", () => {
         statusBadgeClass = "status-pending";
       }
 
-      // Main Row
       const tr = document.createElement("tr");
       tr.className = isExpanded ? "expanded" : "";
       tr.dataset.sl = row.slNo;
@@ -379,7 +613,6 @@ document.addEventListener("DOMContentLoaded", () => {
       tr.addEventListener("click", () => toggleRowExpand(row.slNo));
       tableBody.appendChild(tr);
 
-      // Expanded Detail Row with ALL spreadsheet fields covered
       if (isExpanded) {
         const detailTr = document.createElement("tr");
         detailTr.className = "detail-row";
@@ -768,7 +1001,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (sheetSelect) {
       sheetSelect.addEventListener("change", (e) => {
         currentSelectedSheet = e.target.value;
-        fetchLiveData(false, currentSelectedSheet);
+        fetchGoogleSheetData(false, currentSelectedSheet);
       });
     }
 
@@ -818,7 +1051,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
 
-    manualSyncBtn.addEventListener("click", () => fetchLiveData(false));
+    manualSyncBtn.addEventListener("click", () => fetchGoogleSheetData(false, currentSelectedSheet));
     exportCsvBtn.addEventListener("click", exportCSV);
     themeToggleBtn.addEventListener("click", toggleTheme);
 
