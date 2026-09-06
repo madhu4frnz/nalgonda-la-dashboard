@@ -1837,26 +1837,285 @@ input:checked + .slider:before {
   }
 }
 
-/* Print Mode */
+/* Print Mode (Executive Official Briefing & Full Ledger Report) */
 @media print {
-  body {
-    background: #ffffff !important;
-    color: #000000 !important;
+  @page {
+    size: A4 landscape;
+    margin: 8mm 8mm 10mm 8mm;
   }
-  .filter-panel, .header-actions, .sim-toggles, .btn, .switch {
+
+  *, *::before, *::after {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-size: 8pt !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .app-wrapper {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    gap: 0.75rem !important;
+  }
+
+  /* Hide screen-only interactive controls */
+  .filter-panel, 
+  .header-actions, 
+  .simulator-panel, 
+  .btn, 
+  .switch, 
+  .lao-circles-section,
+  .toast-notification,
+  .mobile-table-hint,
+  .project-drilldown-actions,
+  .scope-actions,
+  #syncToast {
     display: none !important;
   }
-  .app-wrapper {
-    max-width: 100%;
-    padding: 0;
+
+  /* Official Header Formatting */
+  .header-bar {
+    background: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 4px !important;
+    color: #0f172a !important;
+    padding: 0.6rem 0.85rem !important;
+    margin-bottom: 0.4rem !important;
+    page-break-after: avoid;
+    break-after: avoid;
   }
-  .kpi-card, .chart-card, .table-card, .bottleneck-card {
+
+  .header-titles h1 {
+    font-size: 1.15rem !important;
+    color: #0f172a !important;
+  }
+
+  .header-titles p {
+    font-size: 0.725rem !important;
+    color: #475569 !important;
+  }
+
+  .district-badge {
+    background: #e2e8f0 !important;
+    color: #0f172a !important;
+    border: 1px solid #94a3b8 !important;
+  }
+
+  /* Active Scope Banner */
+  .active-scope-banner {
+    background: #f1f5f9 !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 4px !important;
+    color: #0f172a !important;
+    padding: 0.45rem 0.75rem !important;
+    margin-bottom: 0.4rem !important;
+  }
+
+  .scope-level {
+    color: #0284c7 !important;
+  }
+
+  .scope-title {
+    color: #0f172a !important;
+  }
+
+  .scope-badge {
+    background: #e2e8f0 !important;
+    color: #0f172a !important;
+    border-color: #94a3b8 !important;
+  }
+
+  /* Executive KPI Grid - 4 columns landscape fit */
+  .kpi-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 0.5rem !important;
+    margin-bottom: 0.6rem !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .kpi-card {
     background: #ffffff !important;
-    border: 1px solid #cccccc !important;
-    box-shadow: none !important;
-    color: #000000 !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 4px !important;
+    padding: 0.55rem 0.65rem !important;
+    color: #0f172a !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
   }
+
+  .kpi-title {
+    font-size: 0.7rem !important;
+    color: #475569 !important;
+  }
+
+  .kpi-value {
+    font-size: 1.25rem !important;
+    color: #0f172a !important;
+  }
+
+  .kpi-unit {
+    font-size: 0.65rem !important;
+  }
+
+  .radial-progress {
+    width: 38px !important;
+    height: 38px !important;
+  }
+
+  .radial-progress span {
+    font-size: 0.6rem !important;
+    color: #0f172a !important;
+  }
+
+  .kpi-submetrics span {
+    font-size: 0.625rem !important;
+    color: #334155 !important;
+  }
+
+  /* Charts */
+  .charts-grid {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    margin-bottom: 0.6rem !important;
+  }
+
+  .chart-card {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 4px !important;
+    padding: 0.6rem !important;
+  }
+
+  /* FULL TABLE PRINT EXPANSION (NO SCROLLBARS, NO HEIGHT CLIPPING) */
+  .table-card {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 4px !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+    margin-top: 0.4rem !important;
+    page-break-before: auto;
+  }
+
+  .table-header-wrap {
+    padding: 0.5rem 0.75rem !important;
+    border-bottom: 1px solid #cbd5e1 !important;
+    background: #f8fafc !important;
+  }
+
+  .table-title {
+    font-size: 0.85rem !important;
+    color: #0f172a !important;
+  }
+
+  .table-container {
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+    max-height: none !important;
+    height: auto !important;
+    position: static !important;
+    display: block !important;
+  }
+
   table {
-    font-size: 9pt;
+    width: 100% !important;
+    font-size: 7.25pt !important;
+    border-collapse: collapse !important;
+    page-break-inside: auto;
+  }
+
+  thead {
+    display: table-header-group !important; /* Repeats table header across every page break */
+    position: static !important;
+    background: #f1f5f9 !important;
+  }
+
+  th {
+    background: #f1f5f9 !important;
+    color: #0f172a !important;
+    border: 1px solid #cbd5e1 !important;
+    padding: 0.35rem 0.4rem !important;
+    font-size: 7.25pt !important;
+    font-weight: 700 !important;
+    white-space: normal !important; /* Allow words to wrap cleanly across landscape width */
+    word-break: normal !important;
+  }
+
+  th.sortable::after {
+    display: none !important;
+  }
+
+  tbody {
+    page-break-inside: auto;
+  }
+
+  tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  td {
+    border: 1px solid #e2e8f0 !important;
+    padding: 0.35rem 0.4rem !important;
+    font-size: 7.25pt !important;
+    color: #0f172a !important;
+    background: #ffffff !important;
+    vertical-align: middle !important;
+  }
+
+  .expand-icon {
+    display: none !important;
+  }
+
+  .status-badge {
+    border: 1px solid #94a3b8 !important;
+    background: #f1f5f9 !important;
+    color: #0f172a !important;
+    padding: 0.1rem 0.3rem !important;
+    font-size: 6.5pt !important;
+  }
+
+  .table-progress {
+    display: none !important; /* Hide tiny animated bar to save print space */
+  }
+
+  /* Expandable detail row */
+  .detail-row {
+    page-break-inside: avoid !important;
+  }
+
+  .detail-container {
+    background: #f8fafc !important;
+    border: 1px solid #cbd5e1 !important;
+    padding: 0.4rem !important;
+  }
+
+  /* Bottleneck Priority Action Plan */
+  .bottlenecks-section {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    margin-top: 0.6rem !important;
+  }
+
+  .bottleneck-card {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    padding: 0.6rem !important;
   }
 }

@@ -1442,6 +1442,13 @@ document.addEventListener("DOMContentLoaded", () => {
     exportCsvBtn.addEventListener("click", exportCSV);
     themeToggleBtn.addEventListener("click", toggleTheme);
 
+    const printBtn = document.getElementById("printBtn");
+    if (printBtn) {
+      printBtn.addEventListener("click", () => {
+        window.print();
+      });
+    }
+
     if (simChinthapally) simChinthapally.addEventListener("change", updateSimulation);
     if (simPendlipakala) simPendlipakala.addEventListener("change", updateSimulation);
     if (simMiryalaguda) simMiryalaguda.addEventListener("change", updateSimulation);
