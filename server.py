@@ -441,6 +441,9 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
 
         return super().do_GET()
 
+# Export top-level handler variable for Vercel detection
+handler = CustomHandler
+
 if __name__ == "__main__":
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
     print("Initial fetch with dynamic semantic header mapping...")
