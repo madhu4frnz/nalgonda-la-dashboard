@@ -5,3 +5,5 @@ __pycache__
 check_sheets.py
 test_xlsx_parse.py
 test_smart_header.py
+server.py
+test_parser.js

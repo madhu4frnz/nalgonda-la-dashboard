@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const SHEET_BASE_URL = "https://docs.google.com/spreadsheets/d/1XAJwRAT1jI4TRYiDVjsAtGTkWZJYfeYP8hHtaTxfGe0/gviz/tq?tqx=out:csv";
 
   let activeLao = "ALL";
+  let activeProject = "ALL";
   let activeStatus = "ALL";
   let searchQuery = "";
   let bottleneckOnly = false;
@@ -50,6 +51,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // DOM Elements
   const laoCirclesTrack = document.getElementById("laoCirclesTrack");
+  const projectDrilldownPanel = document.getElementById("projectDrilldownPanel");
+  const projectDrilldownTitleText = document.getElementById("projectDrilldownTitleText");
+  const projectCountBadge = document.getElementById("projectCountBadge");
+  const closeProjectDrilldownBtn = document.getElementById("closeProjectDrilldownBtn");
+  const projectCirclesTrack = document.getElementById("projectCirclesTrack");
+
+  // Active Scope Banner Elements
+  const activeScopeBanner = document.getElementById("activeScopeBanner");
+  const scopeIcon = document.getElementById("scopeIcon");
+  const scopeLevel = document.getElementById("scopeLevel");
+  const scopeTitle = document.getElementById("scopeTitle");
+  const scopeBadge = document.getElementById("scopeBadge");
+  const resetScopeBtn = document.getElementById("resetScopeBtn");
+  const resetProjectScopeBtn = document.getElementById("resetProjectScopeBtn");
+
   const sheetSelect = document.getElementById("sheetSelect");
   const laoFilter = document.getElementById("laoFilter");
   const statusFilter = document.getElementById("statusFilter");
@@ -83,6 +99,8 @@ document.addEventListener("DOMContentLoaded", () => {
   initTheme();
   initSheetDropdown();
   renderLaoCircles(currentItems);
+  renderProjectCircles(activeLao, currentItems);
+  updateScopeBannerUI();
   renderBottleneckGrid();
   initCharts();
   applyFilters();
@@ -387,6 +405,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     renderLaoCircles(items);
+    renderProjectCircles(activeLao, items);
+    updateScopeBannerUI();
     applyFilters();
 
     if (!isInitial) {
@@ -395,7 +415,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* ----------------------------------------------------
-     INTERACTIVE LAO CIRCULAR BADGES
+     INTERACTIVE LAO CIRCULAR BADGES & PROJECT DRILLDOWN
   ---------------------------------------------------- */
   function renderLaoCircles(data) {
     if (!laoCirclesTrack) return;
@@ -440,7 +460,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const card = document.createElement("div");
       card.className = `lao-circle-card ${isSelected ? "active" : ""}`;
       card.dataset.lao = lao.id;
-      card.title = `Click to filter: ${lao.name} (${pct.toFixed(1)}% disbursed)`;
+      card.title = `Click to filter & deploy projects: ${lao.name} (${pct.toFixed(1)}% disbursed)`;
       card.innerHTML = `
         <span class="lao-active-pill"></span>
         <div class="lao-ring-wrapper">
@@ -461,12 +481,16 @@ document.addEventListener("DOMContentLoaded", () => {
       card.addEventListener("click", () => {
         if (activeLao === lao.id && lao.id !== "ALL") {
           activeLao = "ALL";
+          activeProject = "ALL";
         } else {
           activeLao = lao.id;
+          activeProject = "ALL";
         }
 
         if (laoFilter) laoFilter.value = activeLao;
         updateActiveLaoCircleUI();
+        renderProjectCircles(activeLao, currentItems);
+        updateScopeBannerUI();
         applyFilters();
       });
 
@@ -482,6 +506,183 @@ document.addEventListener("DOMContentLoaded", () => {
         c.classList.remove("active");
       }
     });
+  }
+
+  /* ----------------------------------------------------
+     DYNAMIC PROJECT DEPLOYMENT (UNDER SELECTED LAO)
+  ---------------------------------------------------- */
+  function renderProjectCircles(laoId, data) {
+    if (!projectDrilldownPanel || !projectCirclesTrack) return;
+
+    if (laoId === "ALL") {
+      projectDrilldownPanel.style.display = "none";
+      activeProject = "ALL";
+      updateScopeBannerUI();
+      return;
+    }
+
+    const projects = data.filter(d => d.lao === laoId);
+    if (projects.length === 0) {
+      projectDrilldownPanel.style.display = "none";
+      activeProject = "ALL";
+      updateScopeBannerUI();
+      return;
+    }
+
+    projectDrilldownPanel.style.display = "flex";
+    if (projectDrilldownTitleText) {
+      projectDrilldownTitleText.textContent = `${laoId} Projects`;
+    }
+    if (projectCountBadge) {
+      projectCountBadge.textContent = `${projects.length} Schemes Deployed`;
+    }
+
+    projectCirclesTrack.innerHTML = "";
+
+    // Card 0: "All Schemes in Authority" Card
+    const allCard = document.createElement("div");
+    const isAllActive = activeProject === "ALL";
+    allCard.className = `project-circle-card ${isAllActive ? "active" : ""}`;
+    allCard.dataset.projectSl = "ALL";
+    allCard.title = `View aggregated stats for all ${projects.length} schemes under ${laoId}`;
+
+    const laoTotalRel = projects.reduce((acc, d) => acc + (d.releasedCr || 0), 0);
+    const laoTotalDis = projects.reduce((acc, d) => acc + (d.totalDisbursedCr || 0), 0);
+    const laoPct = laoTotalRel > 0 ? (laoTotalDis / laoTotalRel) * 100 : 0;
+
+    allCard.innerHTML = `
+      <span class="project-active-pill"></span>
+      <div class="project-ring-wrapper">
+        <svg viewBox="0 0 36 36">
+          <path class="project-ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+          <path class="project-ring-fill" stroke="#38bdf8" stroke-dasharray="${Math.min(100, Math.max(0, laoPct)).toFixed(1)}, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+        </svg>
+        <div class="project-ring-inner">
+          <span class="project-ring-pct">${laoPct.toFixed(0)}%</span>
+          <span class="project-ring-sl">ALL</span>
+        </div>
+      </div>
+      <div class="project-circle-name">All ${projects.length} Schemes</div>
+      <div class="project-circle-amount">₹${laoTotalDis.toFixed(1)} Cr</div>
+      <div class="project-circle-stat">Authority Total</div>
+    `;
+
+    allCard.addEventListener("click", () => {
+      activeProject = "ALL";
+      updateProjectCircleUI();
+      updateScopeBannerUI();
+      applyFilters();
+    });
+    projectCirclesTrack.appendChild(allCard);
+
+    // Individual Project Cards
+    projects.forEach((proj) => {
+      const rel = proj.releasedCr || 0;
+      const dis = proj.totalDisbursedCr || 0;
+      const pct = rel > 0 ? (dis / rel) * 100 : 0;
+      const isSelected = String(activeProject) === String(proj.slNo);
+
+      let strokeColor = "#f43f5e";
+      if (pct >= 60) {
+        strokeColor = "#10b981";
+      } else if (pct >= 30) {
+        strokeColor = "#38bdf8";
+      }
+
+      const card = document.createElement("div");
+      card.className = `project-circle-card ${isSelected ? "active" : ""}`;
+      card.dataset.projectSl = proj.slNo;
+      card.title = `Click to show stats on top: ${proj.project} (${pct.toFixed(1)}% disbursed)`;
+
+      card.innerHTML = `
+        <span class="project-active-pill"></span>
+        <div class="project-ring-wrapper">
+          <svg viewBox="0 0 36 36">
+            <path class="project-ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+            <path class="project-ring-fill" stroke="${strokeColor}" stroke-dasharray="${Math.min(100, Math.max(0, pct)).toFixed(1)}, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+          </svg>
+          <div class="project-ring-inner">
+            <span class="project-ring-pct">${pct.toFixed(0)}%</span>
+            <span class="project-ring-sl">#${proj.slNo}</span>
+          </div>
+        </div>
+        <div class="project-circle-name" title="${proj.project}">${proj.project}</div>
+        <div class="project-circle-amount">₹${dis.toFixed(1)} Cr</div>
+        <div class="project-circle-stat">${(proj.paymentCompletedExtentAc || 0).toFixed(0)} Ac • ${proj.beneficiariesPaid || 0} Ben.</div>
+      `;
+
+      card.addEventListener("click", () => {
+        if (String(activeProject) === String(proj.slNo)) {
+          activeProject = "ALL";
+        } else {
+          activeProject = proj.slNo;
+        }
+        updateProjectCircleUI();
+        updateScopeBannerUI();
+        applyFilters();
+
+        const banner = document.getElementById("activeScopeBanner");
+        if (banner) {
+          banner.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+      });
+
+      projectCirclesTrack.appendChild(card);
+    });
+  }
+
+  function updateProjectCircleUI() {
+    document.querySelectorAll(".project-circle-card").forEach(c => {
+      if (String(c.dataset.projectSl) === String(activeProject)) {
+        c.classList.add("active");
+      } else {
+        c.classList.remove("active");
+      }
+    });
+  }
+
+  function updateScopeBannerUI() {
+    if (!activeScopeBanner) return;
+
+    if (activeLao === "ALL") {
+      if (scopeLevel) scopeLevel.textContent = "DISTRICT VIEW";
+      if (scopeTitle) scopeTitle.textContent = "Whole District Overview (All Authorities & Schemes)";
+      if (scopeBadge) {
+        scopeBadge.textContent = "District Aggregated";
+        scopeBadge.style.background = "rgba(16, 185, 129, 0.15)";
+        scopeBadge.style.color = "#34d399";
+        scopeBadge.style.borderColor = "rgba(16, 185, 129, 0.35)";
+      }
+      if (resetScopeBtn) resetScopeBtn.style.display = "none";
+      if (resetProjectScopeBtn) resetProjectScopeBtn.style.display = "none";
+    } else if (activeProject === "ALL") {
+      const laoSchemes = currentItems.filter(d => d.lao === activeLao);
+      if (scopeLevel) scopeLevel.textContent = "AUTHORITY SCOPE";
+      if (scopeTitle) scopeTitle.textContent = `${activeLao} (All ${laoSchemes.length} Schemes)`;
+      if (scopeBadge) {
+        scopeBadge.textContent = `${laoSchemes.length} Schemes Active`;
+        scopeBadge.style.background = "rgba(56, 189, 248, 0.15)";
+        scopeBadge.style.color = "#38bdf8";
+        scopeBadge.style.borderColor = "rgba(56, 189, 248, 0.35)";
+      }
+      if (resetScopeBtn) resetScopeBtn.style.display = "inline-flex";
+      if (resetProjectScopeBtn) resetProjectScopeBtn.style.display = "none";
+    } else {
+      const proj = currentItems.find(d => String(d.slNo) === String(activeProject));
+      if (proj) {
+        const pct = (proj.releasedCr > 0 ? (proj.totalDisbursedCr / proj.releasedCr) * 100 : 0);
+        if (scopeLevel) scopeLevel.textContent = `${activeLao} › SCHEME #${proj.slNo}`;
+        if (scopeTitle) scopeTitle.textContent = proj.project;
+        if (scopeBadge) {
+          scopeBadge.textContent = `${pct.toFixed(1)}% Disbursed • ${proj.status || 'Active'}`;
+          scopeBadge.style.background = pct >= 60 ? "rgba(16, 185, 129, 0.15)" : "rgba(251, 191, 36, 0.15)";
+          scopeBadge.style.color = pct >= 60 ? "#34d399" : "#fbbf24";
+          scopeBadge.style.borderColor = pct >= 60 ? "rgba(16, 185, 129, 0.35)" : "rgba(251, 191, 36, 0.35)";
+        }
+      }
+      if (resetScopeBtn) resetScopeBtn.style.display = "inline-flex";
+      if (resetProjectScopeBtn) resetProjectScopeBtn.style.display = "inline-flex";
+    }
   }
 
   function initSheetDropdown() {
@@ -518,6 +719,10 @@ document.addEventListener("DOMContentLoaded", () => {
   function getFilteredData() {
     return currentItems.filter((item) => {
       if (activeLao !== "ALL" && item.lao !== activeLao) {
+        return false;
+      }
+
+      if (activeProject !== "ALL" && String(item.slNo) !== String(activeProject)) {
         return false;
       }
 
@@ -575,9 +780,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* ----------------------------------------------------
-     KPI CARDS & RADIAL PROGRESS UPDATE
+     KPI CARDS & RADIAL PROGRESS UPDATE (STATS ON TOP)
   ---------------------------------------------------- */
   function updateKPICards(data) {
+    const isSingleProject = activeProject !== "ALL" && data.length === 1;
+
     const totalReleased = data.reduce((acc, d) => acc + (d.releasedCr || 0), 0);
     const totalDisbursed = data.reduce((acc, d) => acc + (d.totalDisbursedCr || 0), 0);
     const totalDisbursedToday = data.reduce((acc, d) => acc + (d.disbursedTodayCr || 0), 0);
@@ -598,6 +805,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const benPct = totalBeneficiaries > 0 ? (paidBeneficiaries / totalBeneficiaries) * 100 : 0;
     const extPct = totalExtent > 0 ? (completedExtent / totalExtent) * 100 : 0;
 
+    // Card 1: Funds
+    const kpi1Title = document.getElementById("kpi1Title");
+    const kpi1Unit = document.getElementById("kpi1Unit");
+    if (kpi1Title) kpi1Title.textContent = isSingleProject ? "Project Funds Disbursed" : "Disbursement Progress";
+    if (kpi1Unit) kpi1Unit.textContent = isSingleProject ? "Disbursed So Far" : "Cr Disbursed";
+
     document.getElementById("kpiDisbursedCr").textContent = `₹${totalDisbursed.toFixed(2)}`;
     document.getElementById("kpiReleasedCr").textContent = `₹${totalReleased.toFixed(2)} Cr`;
     document.getElementById("kpiBalanceCr").textContent = `₹${totalBalance.toFixed(2)} Cr`;
@@ -610,11 +823,23 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("fundsPct").textContent = `${fundsPct.toFixed(1)}%`;
     setRadialGauge("fundsGaugeBar", fundsPct);
 
+    // Card 2: Beneficiaries
+    const kpi2Title = document.getElementById("kpi2Title");
+    const kpi2Unit = document.getElementById("kpi2Unit");
+    if (kpi2Title) kpi2Title.textContent = isSingleProject ? "Project Beneficiaries" : "Beneficiaries Reached";
+    if (kpi2Unit) kpi2Unit.textContent = isSingleProject ? `of ${totalBeneficiaries} Awardees` : "Awardees Paid";
+
     document.getElementById("kpiPaidBeneficiaries").textContent = paidBeneficiaries.toLocaleString();
     document.getElementById("kpiTotalBeneficiaries").textContent = totalBeneficiaries.toLocaleString();
     document.getElementById("kpiPendingBeneficiaries").textContent = pendingBeneficiaries.toLocaleString();
     document.getElementById("beneficiaryPct").textContent = `${benPct.toFixed(1)}%`;
     setRadialGauge("beneficiaryGaugeBar", benPct);
+
+    // Card 3: Extent
+    const kpi3Title = document.getElementById("kpi3Title");
+    const kpi3Unit = document.getElementById("kpi3Unit");
+    if (kpi3Title) kpi3Title.textContent = isSingleProject ? "Project Land Extent" : "Land Acquisition Extent";
+    if (kpi3Unit) kpi3Unit.textContent = isSingleProject ? `of ${totalExtent.toFixed(1)} Ac Total` : "Acres Acquired";
 
     document.getElementById("kpiCompletedExtent").textContent = completedExtent.toFixed(2);
     document.getElementById("kpiTotalExtent").textContent = `${totalExtent.toFixed(2)} Ac`;
@@ -622,11 +847,42 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("extentPct").textContent = `${extPct.toFixed(1)}%`;
     setRadialGauge("extentGaugeBar", extPct);
 
-    document.getElementById("kpiTotalProjects").textContent = data.length;
-    document.getElementById("kpiCompletedUnits").textContent = `${completedUnits} Completed`;
-    document.getElementById("kpiActiveUnits").textContent = `${activeUnits} In Progress`;
-    const projRatio = data.length > 0 ? (completedUnits / data.length) * 100 : 0;
-    setRadialGauge("projectGaugeBar", projRatio);
+    // Card 4: Project Info or Schemes Summary
+    const kpi4Title = document.getElementById("kpi4Title");
+    const kpi4Unit = document.getElementById("kpi4Unit");
+    const kpi4Submetrics = document.getElementById("kpi4Submetrics");
+    const projectPct = document.getElementById("projectPct");
+
+    if (isSingleProject) {
+      const p = data[0];
+      if (kpi4Title) kpi4Title.textContent = "Scheme Status & Token";
+      document.getElementById("kpiTotalProjects").textContent = p.status || "In Progress";
+      if (kpi4Unit) kpi4Unit.textContent = `Scheme #${p.slNo} (${p.lao})`;
+      if (projectPct) projectPct.textContent = `${fundsPct.toFixed(0)}% Disb.`;
+      setRadialGauge("projectGaugeBar", fundsPct);
+
+      if (kpi4Submetrics) {
+        kpi4Submetrics.innerHTML = `
+          <span>DTO Token: <strong style="color: #38bdf8;">${p.dtoToken || 'Pending / N/A'}</strong></span>
+          <span>Credit Date: <strong>${p.creditDate || 'N/A'}</strong></span>
+          <span>Bottleneck: <strong style="color: #fb7185;">${p.bottleneckCategory !== 'None' ? p.bottleneckCategory : (p.remarks ? (p.remarks.length > 22 ? p.remarks.substring(0, 22) + '...' : p.remarks) : 'Clear')}</strong></span>
+        `;
+      }
+    } else {
+      if (kpi4Title) kpi4Title.textContent = "Project Schemes";
+      document.getElementById("kpiTotalProjects").textContent = data.length;
+      if (kpi4Unit) kpi4Unit.textContent = "Active Sub-Entries";
+      if (projectPct) projectPct.textContent = `${data.length} Units`;
+      const projRatio = data.length > 0 ? (completedUnits / data.length) * 100 : 0;
+      setRadialGauge("projectGaugeBar", projRatio);
+
+      if (kpi4Submetrics) {
+        kpi4Submetrics.innerHTML = `
+          <span>Completed Units: <strong id="kpiCompletedUnits" style="color: #34d399;">${completedUnits} Completed</strong></span>
+          <span>In Progress / Review: <strong id="kpiActiveUnits" style="color: #38bdf8;">${activeUnits} Schemes</strong></span>
+        `;
+      }
+    }
   }
 
   function setRadialGauge(elementId, percentage) {
@@ -1098,16 +1354,53 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    laoFilter.addEventListener("change", (e) => {
-      activeLao = e.target.value;
-      updateActiveLaoCircleUI();
-      applyFilters();
-    });
+    if (laoFilter) {
+      laoFilter.addEventListener("change", (e) => {
+        activeLao = e.target.value;
+        activeProject = "ALL";
+        updateActiveLaoCircleUI();
+        renderProjectCircles(activeLao, currentItems);
+        updateScopeBannerUI();
+        applyFilters();
+      });
+    }
 
-    statusFilter.addEventListener("change", (e) => {
-      activeStatus = e.target.value;
-      applyFilters();
-    });
+    if (closeProjectDrilldownBtn) {
+      closeProjectDrilldownBtn.addEventListener("click", () => {
+        activeProject = "ALL";
+        updateProjectCircleUI();
+        updateScopeBannerUI();
+        applyFilters();
+      });
+    }
+
+    if (resetProjectScopeBtn) {
+      resetProjectScopeBtn.addEventListener("click", () => {
+        activeProject = "ALL";
+        updateProjectCircleUI();
+        updateScopeBannerUI();
+        applyFilters();
+      });
+    }
+
+    if (resetScopeBtn) {
+      resetScopeBtn.addEventListener("click", () => {
+        activeLao = "ALL";
+        activeProject = "ALL";
+        if (laoFilter) laoFilter.value = "ALL";
+        updateActiveLaoCircleUI();
+        renderProjectCircles("ALL", currentItems);
+        updateScopeBannerUI();
+        applyFilters();
+      });
+    }
+
+    if (statusFilter) {
+      statusFilter.addEventListener("change", (e) => {
+        activeStatus = e.target.value;
+        applyFilters();
+      });
+    }
 
     searchInput.addEventListener("input", (e) => {
       searchQuery = e.target.value;
