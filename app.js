@@ -22,6 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let sortField = "slNo";
   let sortAsc = true;
   let expandedRows = new Set();
+  let currentTab = "overview";
 
   let laoChart = null;
   let bottleneckChart = null;
@@ -100,11 +101,13 @@ document.addEventListener("DOMContentLoaded", () => {
   initTheme();
   initSheetDropdown();
   renderLaoCircles(currentItems);
+  renderSidebarLaoNav();
   renderProjectCircles(activeLao, currentItems);
   updateScopeBannerUI();
   renderBottleneckGrid();
   initCharts();
   applyFilters();
+  switchDashboardTab(currentTab);
   setupEventListeners();
 
   // Fetch live from Google Sheets immediately & schedule every 30s
@@ -406,6 +409,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     renderLaoCircles(items);
+    renderSidebarLaoNav();
     renderProjectCircles(activeLao, items);
     updateScopeBannerUI();
     applyFilters();
@@ -507,6 +511,108 @@ document.addEventListener("DOMContentLoaded", () => {
         c.classList.remove("active");
       }
     });
+    document.querySelectorAll(".sidebar-lao-btn").forEach(btn => {
+      btn.classList.toggle("active", btn.dataset.lao === activeLao);
+    });
+  }
+
+  function renderSidebarLaoNav() {
+    const container = document.getElementById("sidebarLaoNav");
+    if (!container) return;
+
+    const laoList = [
+      { id: "ALL", name: "All District", count: currentItems.length },
+      { id: "SDC Unit-I", name: "SDC Unit-I", count: currentItems.filter(d => d.lao === "SDC Unit-I").length },
+      { id: "SDC Unit-II", name: "SDC Unit-II", count: currentItems.filter(d => d.lao === "SDC Unit-II").length },
+      { id: "RDO Miryalaguda", name: "Miryalaguda", count: currentItems.filter(d => d.lao === "RDO Miryalaguda").length },
+      { id: "RDO Nalgonda", name: "Nalgonda", count: currentItems.filter(d => d.lao === "RDO Nalgonda").length },
+      { id: "PA to SPL Collector", name: "Spl Collector", count: currentItems.filter(d => d.lao === "PA to SPL Collector").length },
+      { id: "RDO Devarakonda", name: "Devarakonda", count: currentItems.filter(d => d.lao === "RDO Devarakonda").length }
+    ];
+
+    container.innerHTML = "";
+    laoList.forEach(item => {
+      const btn = document.createElement("button");
+      btn.className = `sidebar-lao-btn ${activeLao === item.id ? "active" : ""}`;
+      btn.dataset.lao = item.id;
+      btn.innerHTML = `
+        <span class="lao-btn-name">${item.name}</span>
+        <span class="sidebar-lao-count">${item.count}</span>
+      `;
+
+      btn.addEventListener("click", () => {
+        activeLao = item.id;
+        activeProject = "ALL";
+        if (laoFilter) laoFilter.value = activeLao;
+        updateActiveLaoCircleUI();
+        renderProjectCircles(activeLao, currentItems);
+        updateScopeBannerUI();
+        applyFilters();
+        closeMobileSidebar();
+      });
+
+      container.appendChild(btn);
+    });
+  }
+
+  function switchDashboardTab(tabName) {
+    currentTab = tabName || "overview";
+
+    // Update Top Sticky Pills
+    document.querySelectorAll(".tab-pill").forEach((btn) => {
+      btn.classList.toggle("active", btn.dataset.tab === currentTab);
+    });
+
+    // Update Sidebar Navigation Buttons
+    document.querySelectorAll(".sidebar-nav-btn").forEach((btn) => {
+      btn.classList.toggle("active", btn.dataset.tab === currentTab);
+    });
+
+    const main = document.getElementById("dashboardMain");
+    if (!main) return;
+
+    if (currentTab === "all") {
+      main.classList.add("show-all-views");
+      document.querySelectorAll(".tab-view-section").forEach((sec) => {
+        sec.classList.add("active");
+      });
+    } else {
+      main.classList.remove("show-all-views");
+      document.querySelectorAll(".tab-view-section").forEach((sec) => {
+        sec.classList.toggle("active", sec.id === `view-${currentTab}`);
+      });
+    }
+
+    // Trigger Chart.js recalculation if analytics tab or all view activated
+    if (currentTab === "analytics" || currentTab === "all") {
+      setTimeout(() => {
+        if (laoChart) laoChart.resize();
+        if (bottleneckChart) bottleneckChart.resize();
+      }, 80);
+    }
+
+    // Scroll to top of main area when switching tabs
+    main.scrollTop = 0;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+
+    // On mobile, close sidebar drawer
+    closeMobileSidebar();
+  }
+
+  function openMobileSidebar() {
+    const sidebar = document.getElementById("dashboardSidebar");
+    const backdrop = document.getElementById("sidebarBackdrop");
+    if (sidebar) sidebar.classList.add("open");
+    if (backdrop) backdrop.classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeMobileSidebar() {
+    const sidebar = document.getElementById("dashboardSidebar");
+    const backdrop = document.getElementById("sidebarBackdrop");
+    if (sidebar) sidebar.classList.remove("open");
+    if (backdrop) backdrop.classList.remove("open");
+    document.body.style.overflow = "";
   }
 
   /* ----------------------------------------------------
@@ -1051,6 +1157,10 @@ ${statusEmoji} *Current Status:* *${statusBadge}*
   ---------------------------------------------------- */
   function renderTable(data) {
     tableRecordCount.textContent = `Showing ${data.length} of ${currentItems.length} records`;
+    const ledgerPill = document.getElementById("ledgerCountPill");
+    if (ledgerPill) ledgerPill.textContent = data.length;
+    const sidebarBadge = document.getElementById("sidebarLedgerBadge");
+    if (sidebarBadge) sidebarBadge.textContent = data.length;
     tableBody.innerHTML = "";
 
     if (data.length === 0) {
@@ -1698,6 +1808,40 @@ ${item.actionItem}
         if (simMiryalaguda) simMiryalaguda.checked = false;
         updateSimulation();
       });
+    }
+
+    // Dashboard View Tabs
+    document.querySelectorAll(".tab-pill").forEach((pill) => {
+      pill.addEventListener("click", () => {
+        switchDashboardTab(pill.dataset.tab);
+      });
+    });
+
+    document.querySelectorAll(".sidebar-nav-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        switchDashboardTab(btn.dataset.tab);
+      });
+    });
+
+    // Mobile Drawer Controls
+    const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+    if (mobileMenuBtn) {
+      mobileMenuBtn.addEventListener("click", openMobileSidebar);
+    }
+
+    const closeSidebarBtn = document.getElementById("closeSidebarBtn");
+    if (closeSidebarBtn) {
+      closeSidebarBtn.addEventListener("click", closeMobileSidebar);
+    }
+
+    const sidebarBackdrop = document.getElementById("sidebarBackdrop");
+    if (sidebarBackdrop) {
+      sidebarBackdrop.addEventListener("click", closeMobileSidebar);
+    }
+
+    const mobileThemeToggleBtn = document.getElementById("mobileThemeToggleBtn");
+    if (mobileThemeToggleBtn) {
+      mobileThemeToggleBtn.addEventListener("click", toggleTheme);
     }
   }
 });
