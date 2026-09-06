@@ -87,16 +87,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const syncToast = document.getElementById("syncToast");
   const toastMessage = document.getElementById("toastMessage");
 
-  // Simulator Elements
-  const simChinthapally = document.getElementById("simChinthapally");
-  const simPendlipakala = document.getElementById("simPendlipakala");
-  const simMiryalaguda = document.getElementById("simMiryalaguda");
-  const resetSimBtn = document.getElementById("resetSimBtn");
-  const simPct = document.getElementById("simPct");
-  const simDisbursed = document.getElementById("simDisbursed");
-  const simClearedBeneficiaries = document.getElementById("simClearedBeneficiaries");
-  const simClearedExtent = document.getElementById("simClearedExtent");
-
   // Initialize
   initTheme();
   initSheetDropdown();
@@ -1737,52 +1727,6 @@ ${item.actionItem}
   }
 
   /* ----------------------------------------------------
-     SCENARIO SIMULATOR
-  ---------------------------------------------------- */
-  function updateSimulation() {
-    let additionalDisbursed = 0;
-    let additionalBeneficiaries = 0;
-    let additionalExtent = 0;
-
-    if (simChinthapally && simChinthapally.checked) {
-      additionalDisbursed += 82.98;
-      additionalBeneficiaries += 716;
-      additionalExtent += 814.73;
-    }
-    if (simPendlipakala && simPendlipakala.checked) {
-      additionalDisbursed += 54.61;
-      additionalBeneficiaries += 297;
-      additionalExtent += 343.42;
-    }
-    if (simMiryalaguda && simMiryalaguda.checked) {
-      additionalDisbursed += 14.39;
-      additionalBeneficiaries += 880;
-      additionalExtent += 49.88;
-    }
-
-    const baselineDisbursed = 171.18;
-    const totalFunds = 362.95;
-    const simulatedTotal = baselineDisbursed + additionalDisbursed;
-    const simulatedPct = (simulatedTotal / totalFunds) * 100;
-
-    if (simPct) simPct.textContent = `${simulatedPct.toFixed(1)}%`;
-    if (simDisbursed) simDisbursed.textContent = `₹${simulatedTotal.toFixed(2)} Cr`;
-    if (simClearedBeneficiaries) simClearedBeneficiaries.textContent = `+${additionalBeneficiaries.toLocaleString()}`;
-    if (simClearedExtent) simClearedExtent.textContent = `+${additionalExtent.toFixed(2)} Ac`;
-
-    const banner = document.getElementById("simResultsBanner");
-    if (banner) {
-      if (additionalDisbursed > 0) {
-        banner.style.background = "rgba(16, 185, 129, 0.25)";
-        banner.style.border = "1px solid #10b981";
-      } else {
-        banner.style.background = "rgba(16, 185, 129, 0.1)";
-        banner.style.border = "1px solid rgba(16, 185, 129, 0.25)";
-      }
-    }
-  }
-
-  /* ----------------------------------------------------
      CSV EXPORT
   ---------------------------------------------------- */
   function exportCSV() {
@@ -1981,19 +1925,6 @@ ${item.actionItem}
     if (printBtn) {
       printBtn.addEventListener("click", () => {
         window.print();
-      });
-    }
-
-    if (simChinthapally) simChinthapally.addEventListener("change", updateSimulation);
-    if (simPendlipakala) simPendlipakala.addEventListener("change", updateSimulation);
-    if (simMiryalaguda) simMiryalaguda.addEventListener("change", updateSimulation);
-
-    if (resetSimBtn) {
-      resetSimBtn.addEventListener("click", () => {
-        if (simChinthapally) simChinthapally.checked = false;
-        if (simPendlipakala) simPendlipakala.checked = false;
-        if (simMiryalaguda) simMiryalaguda.checked = false;
-        updateSimulation();
       });
     }
 

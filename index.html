@@ -111,10 +111,6 @@
               <span class="nav-icon">⚠️</span>
               <span class="nav-text">Critical Obstacles</span>
             </button>
-            <button class="sidebar-nav-btn" data-tab="simulator">
-              <span class="nav-icon">⚡</span>
-              <span class="nav-text">What-If Simulator</span>
-            </button>
             <button class="sidebar-nav-btn" data-tab="all">
               <span class="nav-icon">📋</span>
               <span class="nav-text">Full Page Scroll</span>
@@ -185,9 +181,6 @@
           </button>
           <button class="tab-pill" data-tab="bottlenecks">
             <span>⚠️ Critical Obstacles</span>
-          </button>
-          <button class="tab-pill" data-tab="simulator">
-            <span>⚡ What-If Simulator</span>
           </button>
           <button class="tab-pill" data-tab="all">
             <span>📋 Full View</span>
@@ -534,61 +527,6 @@
           </div>
           <div class="bottleneck-cards-grid" id="bottleneckGrid">
             <!-- Rendered dynamically by JavaScript -->
-          </div>
-        </section>
-      </div>
-
-      <!-- ============================================== -->
-      <!-- TAB VIEW 5: WHAT-IF SCENARIO SIMULATOR         -->
-      <!-- ============================================== -->
-      <div class="tab-view-section" id="view-simulator">
-        <section class="simulator-panel">
-          <div class="simulator-header">
-            <div class="simulator-title">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"></circle>
-                <polygon points="10 8 16 12 10 16 10 8"></polygon>
-              </svg>
-              Executive What-If Target Scenario Simulator
-            </div>
-            <button id="resetSimBtn" class="btn btn-secondary" style="font-size: 0.75rem; padding: 0.25rem 0.6rem;">Reset Scenarios</button>
-          </div>
-          <div class="sim-toggles">
-            <div class="sim-card">
-              <div class="sim-info">
-                <h5>Resolve Chinthapally Rate Dispute</h5>
-                <p>Disburse ₹82.98 Cr balance (Ac. 814.73)</p>
-              </div>
-              <label class="switch">
-                <input type="checkbox" id="simChinthapally">
-                <span class="slider"></span>
-              </label>
-            </div>
-            <div class="sim-card">
-              <div class="sim-info">
-                <h5>Clear Pendlipakala (Unit-I) Backlog</h5>
-                <p>Disburse ₹54.61 Cr balance (297 awardees)</p>
-              </div>
-              <label class="switch">
-                <input type="checkbox" id="simPendlipakala">
-                <span class="slider"></span>
-              </label>
-            </div>
-            <div class="sim-card">
-              <div class="sim-info">
-                <h5>Resolve Miryalaguda Survey Issues</h5>
-                <p>Clear Nellikal & Dunnapothula (₹14.39 Cr)</p>
-              </div>
-              <label class="switch">
-                <input type="checkbox" id="simMiryalaguda">
-                <span class="slider"></span>
-              </label>
-            </div>
-          </div>
-          <div class="sim-results" id="simResultsBanner">
-            <span>Simulated District Disbursement: <strong id="simPct">47.2%</strong> (<span id="simDisbursed">₹171.18 Cr</span> / ₹362.95 Cr)</span>
-            <span>Additional Beneficiaries Cleared: <strong id="simClearedBeneficiaries">+0</strong></span>
-            <span>Additional Extent Secured: <strong id="simClearedExtent">+0.00 Ac</strong></span>
           </div>
         </section>
       </div>
