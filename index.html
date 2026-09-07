@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
   <title>Nalgonda District | Land Acquisition Payment Disbursement Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=2.3">
+  <link rel="stylesheet" href="style.css?v=2.4">
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -259,21 +259,21 @@
               </div>
             </div>
             <div class="kpi-body">
-              <div class="kpi-value" id="kpiDisbursedCr">₹171.18</div>
+              <div class="kpi-value" id="kpiDisbursedCr">₹147.31</div>
               <div class="kpi-unit" id="kpi1Unit">Cr Disbursed</div>
             </div>
             <div class="kpi-gauge-container">
               <div class="radial-progress" id="fundsGauge">
                 <svg viewBox="0 0 36 36">
                   <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-                  <path class="circle-bar" id="fundsGaugeBar" stroke="#38bdf8" stroke-dasharray="47.16, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                  <path class="circle-bar" id="fundsGaugeBar" stroke="#38bdf8" stroke-dasharray="45.00, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
                 </svg>
-                <span id="fundsPct">47.2%</span>
+                <span id="fundsPct">45.0%</span>
               </div>
               <div class="kpi-submetrics" id="kpi1Submetrics">
-                <span>Total Released: <strong id="kpiReleasedCr">₹362.95 Cr</strong></span>
+                <span>Total Released: <strong id="kpiReleasedCr">₹327.40 Cr</strong></span>
                 <span>Disbursed Today: <strong id="kpiDisbursedTodayCr" style="color: #34d399;">₹0.00 Cr</strong></span>
-                <span>Balance to Pay: <strong id="kpiBalanceCr" style="color: #fb7185;">₹191.77 Cr</strong></span>
+                <span>Balance to Pay: <strong id="kpiBalanceCr" style="color: #fb7185;">₹180.09 Cr</strong></span>
               </div>
             </div>
           </div>
@@ -292,20 +292,20 @@
               </div>
             </div>
             <div class="kpi-body">
-              <div class="kpi-value" id="kpiPaidBeneficiaries">1,577</div>
+              <div class="kpi-value" id="kpiPaidBeneficiaries">1,451</div>
               <div class="kpi-unit" id="kpi2Unit">Awardees Paid</div>
             </div>
             <div class="kpi-gauge-container">
               <div class="radial-progress" id="beneficiaryGauge">
                 <svg viewBox="0 0 36 36">
                   <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-                  <path class="circle-bar" id="beneficiaryGaugeBar" stroke="#10b981" stroke-dasharray="44.51, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                  <path class="circle-bar" id="beneficiaryGaugeBar" stroke="#10b981" stroke-dasharray="43.02, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
                 </svg>
-                <span id="beneficiaryPct">44.5%</span>
+                <span id="beneficiaryPct">43.0%</span>
               </div>
               <div class="kpi-submetrics" id="kpi2Submetrics">
-                <span>Total Beneficiaries: <strong id="kpiTotalBeneficiaries">3,543</strong></span>
-                <span>Pending Payment: <strong id="kpiPendingBeneficiaries" style="color: #fbbf24;">1,966</strong></span>
+                <span>Total Beneficiaries: <strong id="kpiTotalBeneficiaries">3,373</strong></span>
+                <span>Pending Payment: <strong id="kpiPendingBeneficiaries" style="color: #fbbf24;">1,922</strong></span>
               </div>
             </div>
           </div>
@@ -323,20 +323,20 @@
               </div>
             </div>
             <div class="kpi-body">
-              <div class="kpi-value" id="kpiCompletedExtent">828.33</div>
+              <div class="kpi-value" id="kpiCompletedExtent">666.10</div>
               <div class="kpi-unit" id="kpi3Unit">Acres Acquired</div>
             </div>
             <div class="kpi-gauge-container">
               <div class="radial-progress" id="extentGauge">
                 <svg viewBox="0 0 36 36">
                   <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-                  <path class="circle-bar" id="extentGaugeBar" stroke="#f59e0b" stroke-dasharray="39.53, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                  <path class="circle-bar" id="extentGaugeBar" stroke="#f59e0b" stroke-dasharray="34.56, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
                 </svg>
-                <span id="extentPct">39.5%</span>
+                <span id="extentPct">34.6%</span>
               </div>
               <div class="kpi-submetrics" id="kpi3Submetrics">
-                <span>Total Extent: <strong id="kpiTotalExtent">2,095.46 Ac</strong></span>
-                <span>Balance Extent: <strong id="kpiBalanceExtent" style="color: #f59e0b;">1,338.29 Ac</strong></span>
+                <span>Total Extent: <strong id="kpiTotalExtent">1,927.57 Ac</strong></span>
+                <span>Balance Extent: <strong id="kpiBalanceExtent" style="color: #f59e0b;">1,261.47 Ac</strong></span>
               </div>
             </div>
           </div>
@@ -352,20 +352,20 @@
               </div>
             </div>
             <div class="kpi-body">
-              <div class="kpi-value" id="kpiTotalProjects">18</div>
+              <div class="kpi-value" id="kpiTotalProjects">13</div>
               <div class="kpi-unit" id="kpi4Unit">Active Sub-Entries</div>
             </div>
             <div class="kpi-gauge-container">
               <div class="radial-progress" id="projectGauge">
                 <svg viewBox="0 0 36 36">
                   <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-                  <path class="circle-bar" id="projectGaugeBar" stroke="#818cf8" stroke-dasharray="33.33, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
+                  <path class="circle-bar" id="projectGaugeBar" stroke="#818cf8" stroke-dasharray="38.46, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
                 </svg>
-                <span id="projectPct">6 LAOs</span>
+                <span id="projectPct">5 LAOs</span>
               </div>
               <div class="kpi-submetrics" id="kpi4Submetrics">
-                <span>Completed Units: <strong id="kpiCompletedUnits" style="color: #34d399;">6 Schemes</strong></span>
-                <span>In Progress / Review: <strong id="kpiActiveUnits" style="color: #38bdf8;">12 Schemes</strong></span>
+                <span>Completed Units: <strong id="kpiCompletedUnits" style="color: #34d399;">4 Schemes</strong></span>
+                <span>In Progress / Review: <strong id="kpiActiveUnits" style="color: #38bdf8;">9 Schemes</strong></span>
               </div>
             </div>
           </div>
@@ -556,7 +556,7 @@
             </div>
           </div>
           <div class="sim-results" id="simResultsBanner">
-            <span>Simulated District Disbursement: <strong id="simPct">47.2%</strong> (<span id="simDisbursed">₹171.18 Cr</span> / ₹362.95 Cr)</span>
+            <span>Simulated District Disbursement: <strong id="simPct">45.0%</strong> (<span id="simDisbursed">₹147.31 Cr</span> / ₹327.40 Cr)</span>
             <span>Additional Beneficiaries Cleared: <strong id="simClearedBeneficiaries">+0</strong></span>
             <span>Additional Extent Secured: <strong id="simClearedExtent">+0.00 Ac</strong></span>
           </div>
@@ -582,6 +582,6 @@
     </div>
   </div>
 
-  <script type="module" src="app.js?v=2.3"></script>
+  <script type="module" src="app.js?v=2.4"></script>
 </body>
 </html>

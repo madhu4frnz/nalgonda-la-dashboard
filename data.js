@@ -65,28 +65,14 @@ export const BOTTLENECK_HIGHLIGHTS = [
     beneficiaries: "Award Pending",
     description: "Villagers demanding compensation at ₹5,40,000/acre vs preliminary notification value of ₹2,70,000/acre.",
     actionItem: "Negotiation committee review on prevailing guideline values."
-  },
-  {
-    title: "Gummadavelly Village R&R Alignment Dispute",
-    lao: "RDO Devarakonda",
-    urgency: "medium",
-    amount: "₹5.08 Cr",
-    extent: "39.82 Ac",
-    beneficiaries: "22 Pending",
-    description: "Awardees resisting compensation due to disagreement over the R&R Centre site alignment.",
-    actionItem: "Joint inspection by Irrigation and Revenue authorities with local representatives."
-  },
-  {
-    title: "Shivannagudem Reservoir - Successful Intervention",
-    lao: "RDO Devarakonda",
-    urgency: "success",
-    amount: "₹12.08 Cr Paid",
-    extent: "43.23 Ac",
-    beneficiaries: "18/22 Paid",
-    description: "Meeting conducted by District Collector with Hon'ble MLA Devarakonda successfully convinced awardees; 78% disbursed.",
-    actionItem: "Clear final 4 claims (₹3.42 Cr) to complete project."
   }
 ];
+
+export function isExcludedLao(lao) {
+  if (!lao) return false;
+  const l = String(lao).toLowerCase();
+  return l.includes("devarakonda");
+}
 
 export const SEED_ITEMS = [
   {
@@ -400,126 +386,6 @@ export const SEED_ITEMS = [
     postAwardBalance: null,
     remarks: "Ac. 590.04 gts awardees demanding higher compensation. Ac. 224.09 gts consent proposal sent to Collector.",
     bottleneckCategory: "Market Value Revision"
-  },
-  {
-    slNo: 14,
-    lao: "RDO Devarakonda",
-    project: "Akkampally Reservoir (Lift)",
-    dtoToken: "2701729738, 01.08.2026",
-    creditDate: "18.08.2026",
-    releasedCr: 0.52,
-    disbursedYesterdayCr: 0.52,
-    disbursedTodayCr: 0.00,
-    totalDisbursedCr: 0.52,
-    balanceCr: 0.00,
-    totalBeneficiaries: 6,
-    beneficiariesPaid: 6,
-    balanceBeneficiaries: 0,
-    totalExtentAc: 0.35,
-    paymentCompletedExtentAc: 0.35,
-    balanceExtentAc: 0.00,
-    status: "Completed",
-    possession: "Yes",
-    postAwardCompleted: null,
-    postAwardBalance: null,
-    remarks: "Entire payment disbursed. Possession handed over.",
-    bottleneckCategory: "None"
-  },
-  {
-    slNo: 15,
-    lao: "RDO Devarakonda",
-    project: "Ambabhavani lift irrigation",
-    dtoToken: "2701729739, 01.08.2026",
-    creditDate: "18.08.2026",
-    releasedCr: 0.32,
-    disbursedYesterdayCr: 0.32,
-    disbursedTodayCr: 0.00,
-    totalDisbursedCr: 0.32,
-    balanceCr: 0.00,
-    totalBeneficiaries: 13,
-    beneficiariesPaid: 13,
-    balanceBeneficiaries: 0,
-    totalExtentAc: 1.15,
-    paymentCompletedExtentAc: 1.15,
-    balanceExtentAc: 0.00,
-    status: "Completed",
-    possession: "Yes",
-    postAwardCompleted: null,
-    postAwardBalance: null,
-    remarks: "Entire payment disbursed. Possession handed over.",
-    bottleneckCategory: "None"
-  },
-  {
-    slNo: 16,
-    lao: "RDO Devarakonda",
-    project: "Pendlipakala balancing Reservoir (LA for R&R Centre)",
-    dtoToken: "2701729740, 01.08.2026",
-    creditDate: "18.08.2026",
-    releasedCr: 16.03,
-    disbursedYesterdayCr: 10.95,
-    disbursedTodayCr: 0.00,
-    totalDisbursedCr: 10.95,
-    balanceCr: 5.08,
-    totalBeneficiaries: 70,
-    beneficiariesPaid: 48,
-    balanceBeneficiaries: 22,
-    totalExtentAc: 99.28,
-    paymentCompletedExtentAc: 59.46,
-    balanceExtentAc: 39.82,
-    status: "In Progress",
-    possession: "No",
-    postAwardCompleted: null,
-    postAwardBalance: null,
-    remarks: "Gummadavelli Village awardees not accepting compensation due to R&R alignment dispute.",
-    bottleneckCategory: "Alignment Dispute"
-  },
-  {
-    slNo: 17,
-    lao: "RDO Devarakonda",
-    project: "Kistrainpally Balancing Reservoir",
-    dtoToken: "2701729736, 01.08.2026",
-    creditDate: "18.08.2026",
-    releasedCr: 3.18,
-    disbursedYesterdayCr: 0.00,
-    disbursedTodayCr: 0.00,
-    totalDisbursedCr: 0.00,
-    balanceCr: 3.18,
-    totalBeneficiaries: 18,
-    beneficiariesPaid: 0,
-    balanceBeneficiaries: 18,
-    totalExtentAc: 26.00,
-    paymentCompletedExtentAc: 0.00,
-    balanceExtentAc: 26.00,
-    status: "In Progress",
-    possession: "No",
-    postAwardCompleted: null,
-    postAwardBalance: null,
-    remarks: "Awardees not willing to take compensation. Requesting to enhance compensation amount.",
-    bottleneckCategory: "Market Value Revision"
-  },
-  {
-    slNo: 18,
-    lao: "RDO Devarakonda",
-    project: "Shivannagudem Balancing Reservoir",
-    dtoToken: "2701729737, 01.08.2026",
-    creditDate: "18.08.2026",
-    releasedCr: 15.50,
-    disbursedYesterdayCr: 12.08,
-    disbursedTodayCr: 0.00,
-    totalDisbursedCr: 12.08,
-    balanceCr: 3.42,
-    totalBeneficiaries: 22,
-    beneficiariesPaid: 18,
-    balanceBeneficiaries: 4,
-    totalExtentAc: 54.23,
-    paymentCompletedExtentAc: 43.23,
-    balanceExtentAc: 11.00,
-    status: "In Progress",
-    possession: "Partial",
-    postAwardCompleted: null,
-    postAwardBalance: null,
-    remarks: "District Collector conducted village meeting with Hon'ble MLA Devarakonda; convinced awardees.",
-    bottleneckCategory: "Active Disbursement"
   }
 ];
 
@@ -550,7 +416,7 @@ export function cleanStr(v) {
 /* ----------------------------------------------------
    LOCAL STORAGE CACHING
 ---------------------------------------------------- */
-const CACHE_PREFIX = "nalgonda_la_cache_v2_";
+const CACHE_PREFIX = "nalgonda_la_cache_v2_4_";
 
 export function getCachedData(sheetName) {
   try {
@@ -559,6 +425,7 @@ export function getCachedData(sheetName) {
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (parsed && Array.isArray(parsed.items) && parsed.items.length > 0) {
+      parsed.items = parsed.items.filter(it => !isExcludedLao(it.lao));
       return parsed;
     }
   } catch (err) {
@@ -810,15 +677,17 @@ export async function fetchSheetData(sheetName = "Daily Report 06.09.2026", forc
       }
     }
 
-    if (items.length === 0) {
+    const validItems = items.filter(it => !isExcludedLao(it.lao));
+
+    if (validItems.length === 0) {
       throw new Error("No valid project records could be parsed from sheet");
     }
 
     // Cache successful payload in localStorage
-    setCachedData(sheetName, { items, asOnDate });
+    setCachedData(sheetName, { items: validItems, asOnDate });
 
     return {
-      items,
+      items: validItems,
       asOnDate,
       isCached: false,
       cacheTime: new Date().toISOString(),

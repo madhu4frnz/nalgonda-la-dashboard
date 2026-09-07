@@ -54,7 +54,7 @@ export async function initOrUpdateCharts(state) {
   }
 
   const data = getFilteredItems(state);
-  const laos = ["SDC Unit-I", "SDC Unit-II", "RDO Miryalaguda", "RDO Nalgonda", "PA to SPL Collector", "RDO Devarakonda"];
+  const laos = ["SDC Unit-I", "SDC Unit-II", "RDO Miryalaguda", "RDO Nalgonda", "PA to SPL Collector"];
   const activeLaos = state.activeLao === "ALL" ? laos : [state.activeLao];
 
   const disbursedByLao = activeLaos.map((name) => {

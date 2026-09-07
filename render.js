@@ -3,8 +3,8 @@
  * ES Module: All DOM rendering, 3 explicit UI states, Skeletons, Resilience Banner
  */
 
-import { getFilteredItems, getSortedItems, calculateSimulation } from "./state.js?v=2.3";
-import { BOTTLENECK_HIGHLIGHTS } from "./data.js?v=2.3";
+import { getFilteredItems, getSortedItems, calculateSimulation } from "./state.js?v=2.4";
+import { BOTTLENECK_HIGHLIGHTS } from "./data.js?v=2.4";
 
 /* ----------------------------------------------------
    NUMBER FORMATTING UTILITIES (INDIAN LOCALE)
@@ -373,8 +373,7 @@ export function renderLaoCircles(state, onSelectLao) {
     { id: "SDC Unit-II", name: "SDC Unit-II", short: "SDC-II" },
     { id: "RDO Miryalaguda", name: "Miryalaguda", short: "MLG" },
     { id: "RDO Nalgonda", name: "Nalgonda", short: "NLG" },
-    { id: "PA to SPL Collector", name: "Spl Collector", short: "SPL" },
-    { id: "RDO Devarakonda", name: "Devarakonda", short: "DVK" }
+    { id: "PA to SPL Collector", name: "Spl Collector", short: "SPL" }
   ];
 
   laoCirclesTrack.innerHTML = "";
@@ -953,46 +952,10 @@ export function renderScopeBanner(state, options = {}) {
 }
 
 /* ----------------------------------------------------
-   SIDEBAR LAO NAV LIST
+   SIDEBAR LAO NAV LIST (REMOVED PER USER REQUEST)
 ---------------------------------------------------- */
-export function renderSidebarLaoNav(state, onSelectLao) {
-  const container = document.getElementById("sidebarLaoNav");
-  if (!container) return;
-  container.innerHTML = "";
-
-  const laoList = [
-    { id: "ALL", name: "All Authorities", short: "DIST" },
-    { id: "SDC Unit-I", name: "SDC Unit-I", short: "SDC-I" },
-    { id: "SDC Unit-II", name: "SDC Unit-II", short: "SDC-II" },
-    { id: "RDO Miryalaguda", name: "RDO Miryalaguda", short: "MLG" },
-    { id: "RDO Nalgonda", name: "RDO Nalgonda", short: "NLG" },
-    { id: "PA to SPL Collector", name: "PA to Spl Collector", short: "SPL" },
-    { id: "RDO Devarakonda", name: "RDO Devarakonda", short: "DVK" }
-  ];
-
-  laoList.forEach((lao) => {
-    const btn = document.createElement("button");
-    const isActive = state.activeLao === lao.id;
-    btn.className = `sidebar-sub-item ${isActive ? 'active' : ''}`;
-
-    let count = 0;
-    if (lao.id === "ALL") {
-      count = state.rawItems.length;
-    } else {
-      count = state.rawItems.filter((d) => d.lao === lao.id).length;
-    }
-
-    btn.innerHTML = `
-      <span class="sub-item-text">${lao.name}</span>
-      <span class="sub-item-badge">${count}</span>
-    `;
-
-    btn.addEventListener("click", () => {
-      if (onSelectLao) onSelectLao(lao.id);
-    });
-
-    container.appendChild(btn);
-  });
+export function renderSidebarLaoNav() {
+  // Section removed per user request
 }
 
 /* ----------------------------------------------------
