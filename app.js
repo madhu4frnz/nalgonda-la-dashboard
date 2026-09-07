@@ -91,12 +91,30 @@ document.addEventListener("DOMContentLoaded", () => {
         activeProject: "ALL"
       });
       if (laoFilter) laoFilter.value = laoId;
+      // Auto-scroll: bring the scheme drilldown panel into view
+      if (laoId !== "ALL") {
+        setTimeout(() => {
+          const panel = document.getElementById("projectDrilldownPanel");
+          if (panel && panel.style.display !== "none") {
+            panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          }
+        }, 80);
+      }
     });
 
     renderProjectCircles(
       state,
       (projectSl) => {
         appState.setState({ activeProject: projectSl });
+        // Auto-scroll: bring the scheme spotlight card into view
+        if (projectSl !== "ALL") {
+          setTimeout(() => {
+            const spotlight = document.getElementById("schemeSpotlightContainer");
+            if (spotlight && spotlight.style.display !== "none") {
+              spotlight.scrollIntoView({ behavior: "smooth", block: "nearest" });
+            }
+          }, 80);
+        }
       },
       (project) => sendProjectWhatsApp(project)
     );

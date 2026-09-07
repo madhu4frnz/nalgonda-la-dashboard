@@ -4311,3 +4311,53 @@ section, .tab-view-section, .lao-circles-section, .kpi-grid,
   .lao-section-header { flex-direction: column; align-items: flex-start; gap: 0.3rem; }
   .lao-section-title  { font-size: 0.88rem; }
 }
+
+/* ─── Interaction Hint Bar ────────────────────────────────────── */
+.lao-interaction-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  background: rgba(56, 189, 248, 0.07);
+  border: 1px dashed rgba(56, 189, 248, 0.3);
+  border-radius: var(--radius-md);
+  padding: 0.5rem 0.9rem;
+  margin-top: 0.6rem;
+  animation: hintPulse 2.5s ease-in-out infinite;
+  user-select: none;
+}
+
+.hint-icon {
+  font-size: 1rem;
+  animation: bounceHint 1.2s ease-in-out infinite;
+  display: inline-block;
+}
+
+@keyframes bounceHint {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-4px); }
+}
+
+@keyframes hintPulse {
+  0%, 100% { border-color: rgba(56, 189, 248, 0.3); background: rgba(56, 189, 248, 0.07); }
+  50%       { border-color: rgba(56, 189, 248, 0.6); background: rgba(56, 189, 248, 0.13); }
+}
+
+[data-theme="light"] .lao-interaction-hint {
+  color: #0284c7;
+  background: rgba(2, 132, 199, 0.07);
+  border-color: rgba(2, 132, 199, 0.3);
+}
+
+/* Drilldown panel gets a brief attention flash when it appears */
+.project-drilldown-panel {
+  animation: panelReveal 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes panelReveal {
+  0%   { opacity: 0; transform: translateY(-10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+

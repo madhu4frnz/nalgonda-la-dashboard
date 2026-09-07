@@ -456,7 +456,20 @@ export function renderLaoCircles(state, onSelectLao) {
 
     laoCirclesTrack.appendChild(card);
   });
-}
+
+  // Interaction hint below the track
+  let hint = document.getElementById("laoInteractionHint");
+  if (!hint) {
+    hint = document.createElement("p");
+    hint.id = "laoInteractionHint";
+    hint.className = "lao-interaction-hint";
+    laoCirclesTrack.parentNode.insertBefore(hint, laoCirclesTrack.nextSibling);
+  }
+  const anyActive = state.activeLao !== "ALL";
+  hint.innerHTML = anyActive
+    ? `<span class="hint-icon">👇</span> Now tap a <strong>Scheme card</strong> below to see its full details`
+    : `<span class="hint-icon">👆</span> Tap any <strong>Authority</strong> above to view its schemes`;
+
 
 /* ------------------------------------------------------------------
    SCHEME CIRCULAR CARDS (drilldown under selected LAO)
