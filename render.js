@@ -3,8 +3,8 @@
  * ES Module: All DOM rendering, 3 explicit UI states, Skeletons, Resilience Banner
  */
 
-import { getFilteredItems, getSortedItems, calculateSimulation } from "./state.js?v=2.4";
-import { BOTTLENECK_HIGHLIGHTS } from "./data.js?v=2.4";
+import { getFilteredItems, getSortedItems, calculateSimulation } from "./state.js?v=2.5";
+import { BOTTLENECK_HIGHLIGHTS } from "./data.js?v=2.5";
 
 /* ----------------------------------------------------
    NUMBER FORMATTING UTILITIES (INDIAN LOCALE)
@@ -869,7 +869,7 @@ export function renderKPICards(state) {
     if (kpiActiveUnits) kpiActiveUnits.textContent = `${activeUnits} In Progress`;
 
     const projPctEl = document.getElementById("projectPct");
-    if (projPctEl) projPctEl.textContent = state.activeLao === "ALL" ? "6 LAOs" : `${data.length} Schemes`;
+    if (projPctEl) projPctEl.textContent = state.activeLao === "ALL" ? "5 LAOs" : `${data.length} Schemes`;
     setRadialGauge("projectGaugeBar", data.length > 0 ? (completedUnits / data.length) * 100 : 0);
   }
 }
@@ -882,73 +882,10 @@ function setRadialGauge(id, percentage) {
 }
 
 /* ----------------------------------------------------
-   ACTIVE SCOPE BANNER
+   ACTIVE SCOPE BANNER (REMOVED PER USER REQUEST)
 ---------------------------------------------------- */
-export function renderScopeBanner(state, options = {}) {
-  const banner = document.getElementById("activeScopeBanner");
-  const scopeLevel = document.getElementById("scopeLevel");
-  const scopeTitle = document.getElementById("scopeTitle");
-  const scopeBadge = document.getElementById("scopeBadge");
-  const resetScopeBtn = document.getElementById("resetScopeBtn");
-  const resetProjectScopeBtn = document.getElementById("resetProjectScopeBtn");
-  const scopeShareWhatsAppBtn = document.getElementById("scopeShareWhatsAppBtn");
-
-  if (!banner) return;
-
-  if (state.activeLao === "ALL") {
-    if (scopeLevel) scopeLevel.textContent = "DISTRICT VIEW";
-    if (scopeTitle) scopeTitle.textContent = "Whole District Overview (All Authorities & Schemes)";
-    if (scopeBadge) {
-      scopeBadge.textContent = "District Aggregated";
-      scopeBadge.style.background = "rgba(16, 185, 129, 0.15)";
-      scopeBadge.style.color = "#34d399";
-      scopeBadge.style.borderColor = "rgba(16, 185, 129, 0.35)";
-    }
-    if (resetScopeBtn) resetScopeBtn.style.display = "none";
-    if (resetProjectScopeBtn) resetProjectScopeBtn.style.display = "none";
-    if (scopeShareWhatsAppBtn) scopeShareWhatsAppBtn.style.display = "none";
-  } else if (state.activeProject === "ALL") {
-    const laoSchemes = state.rawItems.filter((d) => d.lao === state.activeLao);
-    if (scopeLevel) scopeLevel.textContent = "AUTHORITY SCOPE";
-    if (scopeTitle) scopeTitle.textContent = `${state.activeLao} (All ${laoSchemes.length} Schemes)`;
-    if (scopeBadge) {
-      scopeBadge.textContent = `${laoSchemes.length} Schemes Active`;
-      scopeBadge.style.background = "rgba(56, 189, 248, 0.15)";
-      scopeBadge.style.color = "#38bdf8";
-      scopeBadge.style.borderColor = "rgba(56, 189, 248, 0.35)";
-    }
-    if (resetScopeBtn) {
-      resetScopeBtn.style.display = "inline-flex";
-      resetScopeBtn.onclick = () => { if (options.onResetDistrict) options.onResetDistrict(); };
-    }
-    if (resetProjectScopeBtn) resetProjectScopeBtn.style.display = "none";
-    if (scopeShareWhatsAppBtn) scopeShareWhatsAppBtn.style.display = "none";
-  } else {
-    const proj = state.rawItems.find((d) => String(d.slNo) === String(state.activeProject));
-    if (proj) {
-      const pct = proj.releasedCr > 0 ? (proj.totalDisbursedCr / proj.releasedCr) * 100 : 0;
-      if (scopeLevel) scopeLevel.textContent = `${state.activeLao} › SCHEME #${proj.slNo}`;
-      if (scopeTitle) scopeTitle.textContent = proj.project;
-      if (scopeBadge) {
-        scopeBadge.textContent = `${pct.toFixed(1)}% Disbursed • ${proj.status || 'Active'}`;
-        scopeBadge.style.background = pct >= 60 ? "rgba(16, 185, 129, 0.15)" : "rgba(251, 191, 36, 0.15)";
-        scopeBadge.style.color = pct >= 60 ? "#34d399" : "#fbbf24";
-        scopeBadge.style.borderColor = pct >= 60 ? "rgba(16, 185, 129, 0.35)" : "rgba(251, 191, 36, 0.35)";
-      }
-      if (scopeShareWhatsAppBtn) {
-        scopeShareWhatsAppBtn.style.display = "inline-flex";
-        scopeShareWhatsAppBtn.onclick = () => { if (options.onSendWhatsApp) options.onSendWhatsApp(proj); };
-      }
-    }
-    if (resetScopeBtn) {
-      resetScopeBtn.style.display = "inline-flex";
-      resetScopeBtn.onclick = () => { if (options.onResetDistrict) options.onResetDistrict(); };
-    }
-    if (resetProjectScopeBtn) {
-      resetProjectScopeBtn.style.display = "inline-flex";
-      resetProjectScopeBtn.onclick = () => { if (options.onResetAuthority) options.onResetAuthority(); };
-    }
-  }
+export function renderScopeBanner() {
+  // Banner removed per user request
 }
 
 /* ----------------------------------------------------
