@@ -6,8 +6,8 @@
 export const appState = {
   // Raw Data from Sheet
   rawItems: [],
-  asOnDate: "06.09.2026",
-  currentSheet: "Daily Report 06.09.2026",
+  asOnDate: "07.09.2026",
+  currentSheet: "latest",
 
   // Active Scope & Filters
   activeLao: "ALL",

@@ -4,8 +4,8 @@
  * No bundlers, zero build steps.
  */
 
-import { fetchSheetData, KNOWN_SHEETS } from "./data.js?v=4.5";
-import { appState, getFilteredItems, getSortedItems } from "./state.js?v=4.5";
+import { fetchSheetData, KNOWN_SHEETS } from "./data.js?v=5.0";
+import { appState, getFilteredItems, getSortedItems } from "./state.js?v=5.0";
 import {
   renderResilienceBanner,
   renderTable,
@@ -16,8 +16,8 @@ import {
   renderBottleneckGrid,
   renderWhatIfSimulator,
   formatCr
-} from "./render.js?v=4.5";
-import { initOrUpdateCharts, resizeCharts } from "./charts.js?v=4.5";
+} from "./render.js?v=5.0";
+import { initOrUpdateCharts, resizeCharts } from "./charts.js?v=5.0";
 
 document.addEventListener("DOMContentLoaded", () => {
   let syncIntervalId = null;
@@ -192,8 +192,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
 
+      // Update dropdown option label for latest sheet
+      if (sheetSelect && sheetSelect.options[0]) {
+        sheetSelect.options[0].textContent = `⚡ Latest (${result.asOnDate}) - Live Auto`;
+      }
+      updateDateDisplays(result.asOnDate);
+
       if (!result.isCached) {
-        showToast(`Synced ${result.items.length} records live from '${appState.currentSheet}'`);
+        const displaySheet = appState.currentSheet === "latest" ? `Latest (${result.asOnDate})` : appState.currentSheet;
+        showToast(`Synced ${result.items.length} records live from '${displaySheet}'`);
       }
     } catch (err) {
       console.error("[app.js] Sync failed:", err);
@@ -268,7 +275,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Sheet selector
     if (sheetSelect) {
       sheetSelect.addEventListener("change", (e) => {
-        const newSheet = e.target.value || KNOWN_SHEETS[0];
+        const newSheet = e.target.value || "latest";
         appState.setState({ currentSheet: newSheet, rawItems: [] });
         triggerSync(true);
       });
@@ -479,13 +486,39 @@ document.addEventListener("DOMContentLoaded", () => {
   function initSheetDropdown() {
     if (!sheetSelect) return;
     sheetSelect.innerHTML = "";
-    KNOWN_SHEETS.forEach((name, idx) => {
+
+    // 1. Auto-Detect Latest option
+    const autoOpt = document.createElement("option");
+    autoOpt.value = "latest";
+    autoOpt.textContent = appState.asOnDate
+      ? `⚡ Latest (${appState.asOnDate}) - Live Auto`
+      : "⚡ Latest Sheet (Live Auto-Detect)";
+    sheetSelect.appendChild(autoOpt);
+
+    // 2. Known specific sheet archives
+    KNOWN_SHEETS.forEach((name) => {
       const opt = document.createElement("option");
       opt.value = name;
-      opt.textContent = idx === 0 ? `${name} (Latest)` : name;
+      opt.textContent = name;
       sheetSelect.appendChild(opt);
     });
-    sheetSelect.value = appState.currentSheet;
+
+    sheetSelect.value = appState.currentSheet || "latest";
+  }
+
+  function updateDateDisplays(asOnDate) {
+    if (!asOnDate) return;
+    const datePill = document.getElementById("liveDatePill");
+    if (datePill) datePill.innerHTML = `📅 As on <strong>${asOnDate}</strong>`;
+
+    const mobDate = document.getElementById("mobileReportDate");
+    if (mobDate) mobDate.textContent = asOnDate;
+
+    const sidebarDate = document.getElementById("sidebarDateBadge");
+    if (sidebarDate) sidebarDate.textContent = `As on ${asOnDate}`;
+
+    const dateBadge = document.querySelector(".district-badge");
+    if (dateBadge) dateBadge.title = `Data As On: ${asOnDate}`;
   }
 
   /* ----------------------------------------------------

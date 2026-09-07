@@ -4361,3 +4361,35 @@ section, .tab-view-section, .lao-circles-section, .kpi-grid,
   100% { opacity: 1; transform: translateY(0); }
 }
 
+/* Dynamic Live Date Pill */
+.live-date-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 9999px;
+  margin-left: 0.75rem;
+  vertical-align: middle;
+}
+
+[data-theme="light"] .live-date-pill {
+  color: #059669;
+  background: rgba(5, 150, 105, 0.1);
+  border-color: rgba(5, 150, 105, 0.3);
+}
+
+@media (max-width: 600px) {
+  .live-date-pill {
+    display: flex;
+    margin-left: 0;
+    margin-top: 0.35rem;
+    font-size: 0.68rem;
+    padding: 0.15rem 0.5rem;
+  }
+}
+

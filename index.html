@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=4.5">
+  <link rel="stylesheet" href="style.css?v=5.0">
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -29,7 +29,7 @@
           </svg>
         </div>
         <div class="mobile-title-text">
-          <span class="mobile-badge">Nalgonda</span>
+          <span class="mobile-badge">Nalgonda • <strong id="mobileReportDate">07.09.2026</strong></span>
           <strong>LA Disbursement Monitor</strong>
         </div>
       </div>
@@ -62,7 +62,7 @@
           </div>
           <div class="sidebar-brand-text">
             <h2>Nalgonda LA</h2>
-            <span class="district-badge">Govt of Telangana</span>
+            <span class="district-badge" id="sidebarDateBadge">As on 07.09.2026</span>
           </div>
         </div>
         <button id="closeSidebarBtn" class="btn-icon close-sidebar-btn" aria-label="Close Sidebar">✕</button>
@@ -188,6 +188,7 @@
                   <polyline points="9 22 9 12 15 12 15 22"></polyline>
                 </svg>
                 Land Acquisition Authorities
+                <span class="live-date-pill" id="liveDatePill">📅 As on <strong>07.09.2026</strong></span>
               </div>
             </div>
             <span class="lao-hint">Select an authority to filter schemes and inspect disbursement performance</span>
@@ -585,6 +586,6 @@
     </div>
   </div>
 
-  <script type="module" src="app.js?v=4.5"></script>
+  <script type="module" src="app.js?v=5.0"></script>
 </body>
 </html>

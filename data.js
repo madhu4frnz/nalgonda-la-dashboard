@@ -8,6 +8,7 @@ export const SPREADSHEET_ID = "1XAJwRAT1jI4TRYiDVjsAtGTkWZJYfeYP8hHtaTxfGe0";
 export const GVIZ_JSON_BASE = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json`;
 
 export const KNOWN_SHEETS = [
+  "Daily report 07.09.2026",
   "Daily Report 06.09.2026",
   "Daily Report 05.09.2026",
   "Daily Report 04.09.2026",
@@ -416,7 +417,7 @@ export function cleanStr(v) {
 /* ----------------------------------------------------
    LOCAL STORAGE CACHING
 ---------------------------------------------------- */
-const CACHE_PREFIX = "nalgonda_la_cache_v2_4_";
+const CACHE_PREFIX = "nalgonda_la_cache_v5_0_";
 
 export function getCachedData(sheetName) {
   try {
@@ -534,8 +535,11 @@ export function deriveBottleneckCategory(remarks, balanceCr) {
 /* ----------------------------------------------------
    FETCH & NORMALISE PIPELINE (GVIZ JSON)
 ---------------------------------------------------- */
-export async function fetchSheetData(sheetName = "Daily Report 06.09.2026", forceRefresh = false) {
-  const url = `${GVIZ_JSON_BASE}&sheet=${encodeURIComponent(sheetName)}`;
+export async function fetchSheetData(sheetName = "latest", forceRefresh = false) {
+  const isLatest = !sheetName || sheetName === "latest" || sheetName === "auto";
+  const url = isLatest
+    ? `${GVIZ_JSON_BASE}&_t=${Date.now()}`
+    : `${GVIZ_JSON_BASE}&sheet=${encodeURIComponent(sheetName)}&_t=${Date.now()}`;
 
   try {
     const response = await fetch(url, {
@@ -566,8 +570,8 @@ export async function fetchSheetData(sheetName = "Daily Report 06.09.2026", forc
     const rows = parsed.table.rows || [];
     const colMap = buildColumnIndexMap(cols);
 
-    // Extract As On Date from col 0 label if present
-    let asOnDate = "06.09.2026";
+    // Extract As On Date dynamically from col 0 label if present
+    let asOnDate = "07.09.2026";
     const col0Label = (cols[0] && cols[0].label) || "";
     const dateMatch = col0Label.match(/as on\s+([0-9]{1,2}[\.\-\/][0-9]{1,2}[\.\-\/][0-9]{2,4})/i);
     if (dateMatch) {
@@ -684,11 +688,16 @@ export async function fetchSheetData(sheetName = "Daily Report 06.09.2026", forc
     }
 
     // Cache successful payload in localStorage
+    const resolvedSheetName = isLatest ? `Daily report ${asOnDate}` : sheetName;
     setCachedData(sheetName, { items: validItems, asOnDate });
+    if (isLatest) {
+      setCachedData("latest", { items: validItems, asOnDate });
+    }
 
     return {
       items: validItems,
       asOnDate,
+      sheetName: resolvedSheetName,
       isCached: false,
       cacheTime: new Date().toISOString(),
       error: null
@@ -697,11 +706,11 @@ export async function fetchSheetData(sheetName = "Daily Report 06.09.2026", forc
   } catch (err) {
     console.warn(`[data.js] Live fetch failed for '${sheetName}', falling back to cache:`, err);
 
-    const cached = getCachedData(sheetName);
+    const cached = getCachedData(sheetName) || getCachedData("latest");
     if (cached && cached.items && cached.items.length > 0) {
       return {
         items: cached.items,
-        asOnDate: cached.asOnDate || "06.09.2026",
+        asOnDate: cached.asOnDate || "07.09.2026",
         isCached: true,
         cacheTime: cached.timestamp || new Date().toISOString(),
         error: err.message
@@ -711,7 +720,7 @@ export async function fetchSheetData(sheetName = "Daily Report 06.09.2026", forc
     // Last line of resilience: Seed data
     return {
       items: SEED_ITEMS,
-      asOnDate: "06.09.2026",
+      asOnDate: "07.09.2026",
       isCached: true,
       isSeed: true,
       cacheTime: null,
