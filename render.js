@@ -3,8 +3,8 @@
  * ES Module: All DOM rendering, 3 explicit UI states, Skeletons, Resilience Banner
  */
 
-import { getFilteredItems, getSortedItems, calculateSimulation } from "./state.js?v=2.5";
-import { BOTTLENECK_HIGHLIGHTS } from "./data.js?v=2.5";
+import { getFilteredItems, getSortedItems, calculateSimulation } from "./state.js?v=4.5";
+import { BOTTLENECK_HIGHLIGHTS } from "./data.js?v=4.5";
 
 /* ----------------------------------------------------
    NUMBER FORMATTING UTILITIES (INDIAN LOCALE)
@@ -24,6 +24,16 @@ export function formatCr(val) {
 export function formatAc(val) {
   const num = Number(val) || 0;
   return `${inrFormatter.format(num)} Ac`;
+}
+
+export function escapeHtml(str) {
+  if (str == null) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 /* ----------------------------------------------------
