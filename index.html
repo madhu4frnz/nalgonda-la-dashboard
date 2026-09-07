@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=2.5">
+  <link rel="stylesheet" href="style.css?v=3.0">
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -177,23 +177,23 @@
       <!-- TAB VIEW 1: EXECUTIVE OVERVIEW & KPIS          -->
       <!-- ============================================== -->
       <div class="tab-view-section active" id="view-overview">
-        <!-- LAO Circular Selection Strip & Dynamic Project Deployment -->
+        <!-- LAO Executive Authority Selection Strip & Dynamic Project Deployment -->
         <section class="lao-circles-section" id="laoCirclesSection">
           <div class="lao-section-header">
             <div>
               <div class="eyebrow">DISTRICT ADMINISTRATION</div>
               <div class="lao-section-title">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <circle cx="12" cy="12" r="4"></circle>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                  <polyline points="9 22 9 12 15 12 15 22"></polyline>
                 </svg>
-                Select LAO Authority (Interactive Progress Circles)
+                Land Acquisition Authorities
               </div>
             </div>
-            <span class="lao-hint">Click any LAO circle to deploy its projects and view stats</span>
+            <span class="lao-hint">Select an authority to filter schemes and inspect disbursement performance</span>
           </div>
           <div class="lao-circles-track" id="laoCirclesTrack">
-            <!-- Rendered dynamically by JavaScript with animated SVG radial rings -->
+            <!-- Rendered dynamically by JavaScript with executive linear cards -->
           </div>
 
           <!-- Project Drilldown Sub-Track (Deploys when LAO is clicked) -->
@@ -205,14 +205,14 @@
                 <span class="project-count-badge" id="projectCountBadge">Projects</span>
               </div>
               <div class="project-drilldown-actions">
-                <span class="drilldown-guide">👉 Click any scheme to view its full details & ledger row</span>
+                <span class="drilldown-guide">Select a scheme to inspect financial allocation and ledger records</span>
                 <button id="closeProjectDrilldownBtn" class="btn btn-secondary" style="font-size: 0.725rem; padding: 0.25rem 0.65rem;">
                   ✕ All in Authority
                 </button>
               </div>
             </div>
             <div class="project-circles-track" id="projectCirclesTrack">
-              <!-- Rendered dynamically by JavaScript with individual project circular widgets -->
+              <!-- Rendered dynamically by JavaScript with individual project executive cards -->
             </div>
           </div>
 
@@ -220,128 +220,155 @@
           <div id="schemeSpotlightContainer" class="scheme-spotlight-container" style="display: none;"></div>
         </section>
 
-        <!-- Executive KPI Grid with Circular Progress Gauges -->
+        <!-- Executive KPI Grid (Modern Linear Executive Metrics) -->
         <div class="eyebrow" style="margin-bottom: 0.5rem;">EXECUTIVE PERFORMANCE INDICATORS</div>
         <section class="kpi-grid" id="kpiGrid">
           <!-- KPI 1: Funds -->
           <div class="kpi-card funds">
-            <div class="kpi-header">
-              <span class="kpi-title" id="kpi1Title">Disbursement Progress</span>
-              <div class="kpi-icon-wrap">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="12" y1="1" x2="12" y2="23"></line>
-                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                </svg>
+            <div class="kpi-card-header">
+              <div class="kpi-header-left">
+                <div class="kpi-icon-wrap funds-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="1" x2="12" y2="23"></line>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                  </svg>
+                </div>
+                <span class="kpi-title" id="kpi1Title">Disbursement Progress</span>
               </div>
+              <span class="kpi-pct-badge text-cyan" id="fundsPct">45.0%</span>
             </div>
-            <div class="kpi-body">
-              <div class="kpi-value" id="kpiDisbursedCr">₹147.31</div>
-              <div class="kpi-unit" id="kpi1Unit">Cr Disbursed</div>
+
+            <div class="kpi-metric-hero">
+              <span class="kpi-value" id="kpiDisbursedCr">₹147.31</span>
+              <span class="kpi-unit" id="kpi1Unit">Cr Disbursed</span>
             </div>
-            <div class="kpi-gauge-container">
-              <div class="radial-progress" id="fundsGauge">
-                <svg viewBox="0 0 36 36">
-                  <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-                  <path class="circle-bar" id="fundsGaugeBar" stroke="#38bdf8" stroke-dasharray="45.00, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-                </svg>
-                <span id="fundsPct">45.0%</span>
+
+            <div class="kpi-linear-track">
+              <div class="kpi-linear-fill bg-cyan" id="fundsProgressBar" style="width: 45.0%;"></div>
+            </div>
+
+            <div class="kpi-meta-grid">
+              <div class="kpi-meta-item">
+                <span class="kpi-meta-label">Total Released</span>
+                <strong class="kpi-meta-val" id="kpiReleasedCr">₹327.40 Cr</strong>
               </div>
-              <div class="kpi-submetrics" id="kpi1Submetrics">
-                <span>Total Released: <strong id="kpiReleasedCr">₹327.40 Cr</strong></span>
-                <span>Disbursed Today: <strong id="kpiDisbursedTodayCr" style="color: #34d399;">₹0.00 Cr</strong></span>
-                <span>Balance to Pay: <strong id="kpiBalanceCr" style="color: #fb7185;">₹180.09 Cr</strong></span>
+              <div class="kpi-meta-item">
+                <span class="kpi-meta-label">Balance to Pay</span>
+                <strong class="kpi-meta-val text-rose" id="kpiBalanceCr">₹180.09 Cr</strong>
+              </div>
+              <div class="kpi-meta-item full-width" id="kpiDisbursedTodayWrap">
+                <span class="kpi-meta-label">Today's Credit</span>
+                <strong class="kpi-meta-val text-green" id="kpiDisbursedTodayCr">₹0.00 Cr</strong>
               </div>
             </div>
           </div>
 
           <!-- KPI 2: Beneficiaries -->
           <div class="kpi-card beneficiaries">
-            <div class="kpi-header">
-              <span class="kpi-title" id="kpi2Title">Beneficiaries Reached</span>
-              <div class="kpi-icon-wrap">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="9" cy="7" r="4"></circle>
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                </svg>
+            <div class="kpi-card-header">
+              <div class="kpi-header-left">
+                <div class="kpi-icon-wrap ben-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                  </svg>
+                </div>
+                <span class="kpi-title" id="kpi2Title">Beneficiaries Reached</span>
               </div>
+              <span class="kpi-pct-badge text-emerald" id="beneficiaryPct">43.0%</span>
             </div>
-            <div class="kpi-body">
-              <div class="kpi-value" id="kpiPaidBeneficiaries">1,451</div>
-              <div class="kpi-unit" id="kpi2Unit">Awardees Paid</div>
+
+            <div class="kpi-metric-hero">
+              <span class="kpi-value" id="kpiPaidBeneficiaries">1,451</span>
+              <span class="kpi-unit" id="kpi2Unit">Awardees Paid</span>
             </div>
-            <div class="kpi-gauge-container">
-              <div class="radial-progress" id="beneficiaryGauge">
-                <svg viewBox="0 0 36 36">
-                  <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-                  <path class="circle-bar" id="beneficiaryGaugeBar" stroke="#10b981" stroke-dasharray="43.02, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-                </svg>
-                <span id="beneficiaryPct">43.0%</span>
+
+            <div class="kpi-linear-track">
+              <div class="kpi-linear-fill bg-emerald" id="beneficiaryProgressBar" style="width: 43.0%;"></div>
+            </div>
+
+            <div class="kpi-meta-grid">
+              <div class="kpi-meta-item">
+                <span class="kpi-meta-label">Total Beneficiaries</span>
+                <strong class="kpi-meta-val" id="kpiTotalBeneficiaries">3,373</strong>
               </div>
-              <div class="kpi-submetrics" id="kpi2Submetrics">
-                <span>Total Beneficiaries: <strong id="kpiTotalBeneficiaries">3,373</strong></span>
-                <span>Pending Payment: <strong id="kpiPendingBeneficiaries" style="color: #fbbf24;">1,922</strong></span>
+              <div class="kpi-meta-item">
+                <span class="kpi-meta-label">Pending Payment</span>
+                <strong class="kpi-meta-val text-amber" id="kpiPendingBeneficiaries">1,922</strong>
               </div>
             </div>
           </div>
 
           <!-- KPI 3: Land Extent -->
           <div class="kpi-card extent">
-            <div class="kpi-header">
-              <span class="kpi-title" id="kpi3Title">Land Acquisition Extent</span>
-              <div class="kpi-icon-wrap">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
-                  <line x1="8" y1="2" x2="8" y2="18"></line>
-                  <line x1="16" y1="6" x2="16" y2="22"></line>
-                </svg>
+            <div class="kpi-card-header">
+              <div class="kpi-header-left">
+                <div class="kpi-icon-wrap extent-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
+                    <line x1="8" y1="2" x2="8" y2="18"></line>
+                    <line x1="16" y1="6" x2="16" y2="22"></line>
+                  </svg>
+                </div>
+                <span class="kpi-title" id="kpi3Title">Land Acquisition Extent</span>
               </div>
+              <span class="kpi-pct-badge text-amber" id="extentPct">34.6%</span>
             </div>
-            <div class="kpi-body">
-              <div class="kpi-value" id="kpiCompletedExtent">666.10</div>
-              <div class="kpi-unit" id="kpi3Unit">Acres Acquired</div>
+
+            <div class="kpi-metric-hero">
+              <span class="kpi-value" id="kpiCompletedExtent">666.10</span>
+              <span class="kpi-unit" id="kpi3Unit">Acres Acquired</span>
             </div>
-            <div class="kpi-gauge-container">
-              <div class="radial-progress" id="extentGauge">
-                <svg viewBox="0 0 36 36">
-                  <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-                  <path class="circle-bar" id="extentGaugeBar" stroke="#f59e0b" stroke-dasharray="34.56, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-                </svg>
-                <span id="extentPct">34.6%</span>
+
+            <div class="kpi-linear-track">
+              <div class="kpi-linear-fill bg-amber" id="extentProgressBar" style="width: 34.6%;"></div>
+            </div>
+
+            <div class="kpi-meta-grid">
+              <div class="kpi-meta-item">
+                <span class="kpi-meta-label">Total Extent</span>
+                <strong class="kpi-meta-val" id="kpiTotalExtent">1,927.57 Ac</strong>
               </div>
-              <div class="kpi-submetrics" id="kpi3Submetrics">
-                <span>Total Extent: <strong id="kpiTotalExtent">1,927.57 Ac</strong></span>
-                <span>Balance Extent: <strong id="kpiBalanceExtent" style="color: #f59e0b;">1,261.47 Ac</strong></span>
+              <div class="kpi-meta-item">
+                <span class="kpi-meta-label">Balance Extent</span>
+                <strong class="kpi-meta-val text-amber" id="kpiBalanceExtent">1,261.47 Ac</strong>
               </div>
             </div>
           </div>
 
           <!-- KPI 4: Scheme Units -->
           <div class="kpi-card projects">
-            <div class="kpi-header">
-              <span class="kpi-title" id="kpi4Title">Project Schemes</span>
-              <div class="kpi-icon-wrap">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-                </svg>
+            <div class="kpi-card-header">
+              <div class="kpi-header-left">
+                <div class="kpi-icon-wrap proj-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                </div>
+                <span class="kpi-title" id="kpi4Title">Project Schemes</span>
               </div>
+              <span class="kpi-pct-badge text-indigo" id="projectPct">5 LAOs</span>
             </div>
-            <div class="kpi-body">
-              <div class="kpi-value" id="kpiTotalProjects">13</div>
-              <div class="kpi-unit" id="kpi4Unit">Active Sub-Entries</div>
+
+            <div class="kpi-metric-hero">
+              <span class="kpi-value" id="kpiTotalProjects">13</span>
+              <span class="kpi-unit" id="kpi4Unit">Active Sub-Entries</span>
             </div>
-            <div class="kpi-gauge-container">
-              <div class="radial-progress" id="projectGauge">
-                <svg viewBox="0 0 36 36">
-                  <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-                  <path class="circle-bar" id="projectGaugeBar" stroke="#818cf8" stroke-dasharray="38.46, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-                </svg>
-                <span id="projectPct">5 LAOs</span>
+
+            <div class="kpi-linear-track">
+              <div class="kpi-linear-fill bg-indigo" id="projectProgressBar" style="width: 38.5%;"></div>
+            </div>
+
+            <div class="kpi-meta-grid">
+              <div class="kpi-meta-item">
+                <span class="kpi-meta-label">Completed Units</span>
+                <strong class="kpi-meta-val text-green" id="kpiCompletedUnits">4 Schemes</strong>
               </div>
-              <div class="kpi-submetrics" id="kpi4Submetrics">
-                <span>Completed Units: <strong id="kpiCompletedUnits" style="color: #34d399;">4 Schemes</strong></span>
-                <span>In Progress / Review: <strong id="kpiActiveUnits" style="color: #38bdf8;">9 Schemes</strong></span>
+              <div class="kpi-meta-item">
+                <span class="kpi-meta-label">In Progress</span>
+                <strong class="kpi-meta-val text-cyan" id="kpiActiveUnits">9 Schemes</strong>
               </div>
             </div>
           </div>
@@ -558,6 +585,6 @@
     </div>
   </div>
 
-  <script type="module" src="app.js?v=2.5"></script>
+  <script type="module" src="app.js?v=3.0"></script>
 </body>
 </html>

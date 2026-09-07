@@ -361,7 +361,7 @@ export function renderTable(state, options = {}) {
 }
 
 /* ----------------------------------------------------
-   LAO CIRCULAR PROGRESS BADGES & AUTHORITY CARDS
+   LAO EXECUTIVE CARDS & AUTHORITY SELECTION
 ---------------------------------------------------- */
 export function renderLaoCircles(state, onSelectLao) {
   const laoCirclesTrack = document.getElementById("laoCirclesTrack");
@@ -379,7 +379,7 @@ export function renderLaoCircles(state, onSelectLao) {
   laoCirclesTrack.innerHTML = "";
   const data = state.rawItems || [];
 
-  // Always render all 7 authority cards so switching is effortless
+  // Render all 6 authorities cleanly
   laoList.forEach((lao) => {
     let released = 0;
     let disbursed = 0;
@@ -399,33 +399,35 @@ export function renderLaoCircles(state, onSelectLao) {
     const pct = released > 0 ? (disbursed / released) * 100 : 0;
     const isSelected = state.activeLao === lao.id;
 
-    let ringColor = "#f43f5e";
-    if (pct >= 60) ringColor = "#10b981";
-    else if (pct >= 30) ringColor = "#38bdf8";
+    let themeClass = "color-amber";
+    if (pct >= 60) themeClass = "color-emerald";
+    else if (pct >= 30) themeClass = "color-sky";
 
     const card = document.createElement("div");
     card.className = `lao-circle-card ${isSelected ? 'active' : ''}`;
     card.dataset.lao = lao.id;
     card.setAttribute("tabindex", "0");
     card.setAttribute("role", "button");
-    card.setAttribute("aria-label", `${lao.name}: ${schemesCount} schemes, ${pct.toFixed(0)}% disbursed`);
-    card.title = `Click to view ${lao.name} (${schemesCount} schemes, ${pct.toFixed(1)}% disbursed)`;
+    card.setAttribute("aria-label", `${lao.name}: ${schemesCount} schemes, ${pct.toFixed(1)}% disbursed`);
+    card.title = `Click to filter ${lao.name} (${schemesCount} schemes, ${pct.toFixed(1)}% disbursed)`;
 
     card.innerHTML = `
-      <span class="lao-active-pill"></span>
-      <div class="lao-ring-wrapper">
-        <svg viewBox="0 0 36 36">
-          <path class="lao-ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-          <path class="lao-ring-fill" stroke="${ringColor}" stroke-dasharray="${Math.min(100, Math.max(0, pct)).toFixed(1)}, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-        </svg>
-        <div class="lao-ring-inner">
-          <span class="lao-ring-pct">${pct.toFixed(0)}%</span>
-          <span class="lao-ring-sub">${lao.short}</span>
-        </div>
+      <div class="lao-card-top">
+        <span class="lao-code-badge">${lao.short}</span>
+        <span class="lao-pct-pill ${themeClass}">${pct.toFixed(1)}%</span>
       </div>
-      <div class="lao-circle-name">${lao.name}</div>
-      <div class="lao-circle-amount">${formatCr(disbursed)} Cr</div>
-      <div class="lao-circle-stat">${schemesCount} Schemes</div>
+      <div class="lao-card-name">${escapeHtml(lao.name)}</div>
+      <div class="lao-card-amount-wrap">
+        <span class="lao-card-amount">₹${disbursed.toFixed(2)} Cr</span>
+        <span class="lao-card-sublabel">Disbursed</span>
+      </div>
+      <div class="lao-linear-meter">
+        <div class="lao-meter-fill ${themeClass}" style="width: ${Math.min(100, Math.max(0, pct)).toFixed(1)}%;"></div>
+      </div>
+      <div class="lao-card-footer">
+        <span>${schemesCount} ${schemesCount === 1 ? 'Scheme' : 'Schemes'}</span>
+        <span>of ₹${released.toFixed(2)} Cr</span>
+      </div>
     `;
 
     card.addEventListener("click", () => {
@@ -444,7 +446,7 @@ export function renderLaoCircles(state, onSelectLao) {
 }
 
 /* ----------------------------------------------------
-   PROJECT CIRCLES TRACK (DRILLDOWN UNDER SELECTED LAO)
+   PROJECT EXECUTIVE CARDS (DRILLDOWN UNDER SELECTED LAO)
 ---------------------------------------------------- */
 export function renderProjectCircles(state, onSelectProject, onSendWhatsApp) {
   const panel = document.getElementById("projectDrilldownPanel");
@@ -477,30 +479,40 @@ export function renderProjectCircles(state, onSelectProject, onSendWhatsApp) {
   const allCard = document.createElement("div");
   allCard.className = `project-circle-card ${state.activeProject === 'ALL' ? 'active' : ''}`;
   allCard.dataset.projectSl = "ALL";
+  allCard.setAttribute("tabindex", "0");
+  allCard.setAttribute("role", "button");
 
   const laoTotalRel = projects.reduce((acc, d) => acc + (d.releasedCr || 0), 0);
   const laoTotalDis = projects.reduce((acc, d) => acc + (d.totalDisbursedCr || 0), 0);
   const laoPct = laoTotalRel > 0 ? (laoTotalDis / laoTotalRel) * 100 : 0;
 
   allCard.innerHTML = `
-    <span class="project-active-pill"></span>
-    <div class="project-ring-wrapper">
-      <svg viewBox="0 0 36 36">
-        <path class="project-ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-        <path class="project-ring-fill" stroke="#38bdf8" stroke-dasharray="${Math.min(100, Math.max(0, laoPct)).toFixed(1)}, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-      </svg>
-      <div class="project-ring-inner">
-        <span class="project-ring-pct">${laoPct.toFixed(0)}%</span>
-        <span class="project-ring-sl">ALL</span>
-      </div>
+    <div class="proj-card-top">
+      <span class="proj-badge">ALL</span>
+      <span class="proj-pct-pill color-sky">${laoPct.toFixed(1)}%</span>
     </div>
-    <div class="project-circle-name">All ${projects.length} Schemes</div>
-    <div class="project-circle-amount">${formatCr(laoTotalDis)} Cr</div>
-    <div class="project-circle-stat">Authority Total</div>
+    <div class="project-card-name">All ${projects.length} Schemes</div>
+    <div class="project-card-amount-wrap">
+      <span class="project-card-amount">₹${laoTotalDis.toFixed(2)} Cr</span>
+      <span class="project-card-sublabel">Authority Total</span>
+    </div>
+    <div class="project-linear-meter">
+      <div class="project-meter-fill color-sky" style="width: ${Math.min(100, Math.max(0, laoPct)).toFixed(1)}%;"></div>
+    </div>
+    <div class="project-card-footer">
+      <span>${projects.length} Schemes</span>
+      <span>of ₹${laoTotalRel.toFixed(2)} Cr</span>
+    </div>
   `;
 
   allCard.addEventListener("click", () => {
     if (onSelectProject) onSelectProject("ALL");
+  });
+  allCard.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      if (onSelectProject) onSelectProject("ALL");
+    }
   });
   track.appendChild(allCard);
 
@@ -511,34 +523,46 @@ export function renderProjectCircles(state, onSelectProject, onSendWhatsApp) {
     const pct = rel > 0 ? (dis / rel) * 100 : 0;
     const isSelected = String(state.activeProject) === String(proj.slNo);
 
-    let strokeColor = "#f43f5e";
-    if (pct >= 60) strokeColor = "#10b981";
-    else if (pct >= 30) strokeColor = "#38bdf8";
+    let themeClass = "color-amber";
+    if (pct >= 60) themeClass = "color-emerald";
+    else if (pct >= 30) themeClass = "color-sky";
 
     const card = document.createElement("div");
     card.className = `project-circle-card ${isSelected ? 'active' : ''}`;
     card.dataset.projectSl = proj.slNo;
+    card.setAttribute("tabindex", "0");
+    card.setAttribute("role", "button");
 
     card.innerHTML = `
-      <span class="project-active-pill"></span>
-      <div class="project-ring-wrapper">
-        <svg viewBox="0 0 36 36">
-          <path class="project-ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-          <path class="project-ring-fill" stroke="${strokeColor}" stroke-dasharray="${Math.min(100, Math.max(0, pct)).toFixed(1)}, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/>
-        </svg>
-        <div class="project-ring-inner">
-          <span class="project-ring-pct">${pct.toFixed(0)}%</span>
-          <span class="project-ring-sl">#${proj.slNo}</span>
-        </div>
+      <div class="proj-card-top">
+        <span class="proj-badge">#${proj.slNo}</span>
+        <span class="proj-pct-pill ${themeClass}">${pct.toFixed(1)}%</span>
       </div>
-      <div class="project-circle-name" title="${proj.project}">${proj.project}</div>
-      <div class="project-circle-amount">${formatCr(dis)} Cr</div>
-      <div class="project-circle-stat">${proj.paymentCompletedExtentAc.toFixed(0)} Ac • ${intFormatter.format(proj.beneficiariesPaid)} Ben.</div>
+      <div class="project-card-name" title="${escapeHtml(proj.project)}">${escapeHtml(proj.project)}</div>
+      <div class="project-card-amount-wrap">
+        <span class="project-card-amount">₹${dis.toFixed(2)} Cr</span>
+        <span class="project-card-sublabel">of ₹${rel.toFixed(2)} Cr</span>
+      </div>
+      <div class="project-linear-meter">
+        <div class="project-meter-fill ${themeClass}" style="width: ${Math.min(100, Math.max(0, pct)).toFixed(1)}%;"></div>
+      </div>
+      <div class="project-card-footer">
+        <span>${proj.paymentCompletedExtentAc.toFixed(1)} Ac</span>
+        <span>${intFormatter.format(proj.beneficiariesPaid)}/${intFormatter.format(proj.totalBeneficiaries)} Ben.</span>
+      </div>
     `;
 
     card.addEventListener("click", () => {
       if (onSelectProject) {
         onSelectProject(String(state.activeProject) === String(proj.slNo) ? "ALL" : proj.slNo);
+      }
+    });
+    card.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        if (onSelectProject) {
+          onSelectProject(String(state.activeProject) === String(proj.slNo) ? "ALL" : proj.slNo);
+        }
       }
     });
 
@@ -797,7 +821,8 @@ export function renderKPICards(state) {
 
   const fundsPctEl = document.getElementById("fundsPct");
   if (fundsPctEl) fundsPctEl.textContent = `${fundsPct.toFixed(1)}%`;
-  setRadialGauge("fundsGaugeBar", fundsPct);
+  const fundsProgressBar = document.getElementById("fundsProgressBar");
+  if (fundsProgressBar) fundsProgressBar.style.width = `${Math.min(100, Math.max(0, fundsPct)).toFixed(1)}%`;
 
   // Card 2: Beneficiaries
   const kpi2Title = document.getElementById("kpi2Title");
@@ -816,7 +841,8 @@ export function renderKPICards(state) {
 
   const benPctEl = document.getElementById("beneficiaryPct");
   if (benPctEl) benPctEl.textContent = `${benPct.toFixed(1)}%`;
-  setRadialGauge("beneficiaryGaugeBar", benPct);
+  const beneficiaryProgressBar = document.getElementById("beneficiaryProgressBar");
+  if (beneficiaryProgressBar) beneficiaryProgressBar.style.width = `${Math.min(100, Math.max(0, benPct)).toFixed(1)}%`;
 
   // Card 3: Extent
   const kpi3Title = document.getElementById("kpi3Title");
@@ -835,12 +861,14 @@ export function renderKPICards(state) {
 
   const extPctEl = document.getElementById("extentPct");
   if (extPctEl) extPctEl.textContent = `${extPct.toFixed(1)}%`;
-  setRadialGauge("extentGaugeBar", extPct);
+  const extentProgressBar = document.getElementById("extentProgressBar");
+  if (extentProgressBar) extentProgressBar.style.width = `${Math.min(100, Math.max(0, extPct)).toFixed(1)}%`;
 
   // Card 4: Project Units
   const kpi4Title = document.getElementById("kpi4Title");
   const kpi4Unit = document.getElementById("kpi4Unit");
   const kpiTotProj = document.getElementById("kpiTotalProjects");
+  const projectProgressBar = document.getElementById("projectProgressBar");
 
   if (isSingleProject) {
     const single = data[0];
@@ -856,7 +884,8 @@ export function renderKPICards(state) {
 
     const projPctEl = document.getElementById("projectPct");
     if (projPctEl) projPctEl.textContent = "Scheme";
-    setRadialGauge("projectGaugeBar", (single.status || "").toLowerCase().includes("completed") ? 100 : 50);
+    const isCompleted = (single.status || "").toLowerCase().includes("completed");
+    if (projectProgressBar) projectProgressBar.style.width = isCompleted ? "100%" : "50%";
   } else {
     if (kpi4Title) kpi4Title.textContent = state.activeLao !== "ALL" ? `${state.activeLao} Schemes` : "Project Schemes";
     if (kpi4Unit) kpi4Unit.textContent = state.activeLao !== "ALL" ? "Schemes in Office" : "Active Sub-Entries";
@@ -870,7 +899,8 @@ export function renderKPICards(state) {
 
     const projPctEl = document.getElementById("projectPct");
     if (projPctEl) projPctEl.textContent = state.activeLao === "ALL" ? "5 LAOs" : `${data.length} Schemes`;
-    setRadialGauge("projectGaugeBar", data.length > 0 ? (completedUnits / data.length) * 100 : 0);
+    const projProgressPct = data.length > 0 ? (completedUnits / data.length) * 100 : 0;
+    if (projectProgressBar) projectProgressBar.style.width = `${Math.min(100, Math.max(0, projProgressPct)).toFixed(1)}%`;
   }
 }
 
