@@ -469,11 +469,12 @@ export function renderLaoCircles(state, onSelectLao) {
   hint.innerHTML = anyActive
     ? `<span class="hint-icon">👇</span> Now tap a <strong>Scheme card</strong> below to see its full details`
     : `<span class="hint-icon">👆</span> Tap any <strong>Authority</strong> above to view its schemes`;
-
+}
 
 /* ------------------------------------------------------------------
    SCHEME CIRCULAR CARDS (drilldown under selected LAO)
 ------------------------------------------------------------------ */
+
 export function renderProjectCircles(state, onSelectProject, onSendWhatsApp) {
   const panel = document.getElementById("projectDrilldownPanel");
   const track = document.getElementById("projectCirclesTrack");
