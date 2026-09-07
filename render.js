@@ -3,8 +3,8 @@
  * ES Module: All DOM rendering, 3 explicit UI states, Skeletons, Resilience Banner
  */
 
-import { getFilteredItems, getSortedItems, calculateSimulation } from "./state.js?v=5.0";
-import { BOTTLENECK_HIGHLIGHTS } from "./data.js?v=5.0";
+import { getFilteredItems, getSortedItems, calculateSimulation } from "./state.js?v=5.2";
+import { BOTTLENECK_HIGHLIGHTS } from "./data.js?v=5.2";
 
 /* ----------------------------------------------------
    NUMBER FORMATTING UTILITIES (INDIAN LOCALE)
@@ -403,7 +403,8 @@ export function renderLaoCircles(state, onSelectLao) {
     { id: "SDC Unit-II",     name: "SDC Unit-II",  short: "SDC-II" },
     { id: "RDO Miryalaguda", name: "Miryalaguda",  short: "MLG" },
     { id: "RDO Nalgonda",    name: "Nalgonda",     short: "NLG" },
-    { id: "PA to SPL Collector", name: "Spl Collector", short: "SPL" }
+    { id: "PA to SPL Collector", name: "Spl Collector", short: "SPL" },
+    { id: "RDO Devarakonda", name: "Devarakonda",  short: "DVK" }
   ];
 
   laoCirclesTrack.innerHTML = "";
@@ -928,7 +929,7 @@ export function renderKPICards(state) {
     if (kpiActiveUnits) kpiActiveUnits.textContent = `${activeUnits} In Progress`;
 
     const projPctEl = document.getElementById("projectPct");
-    if (projPctEl) projPctEl.textContent = state.activeLao === "ALL" ? "5 LAOs" : `${data.length} Schemes`;
+    if (projPctEl) projPctEl.textContent = state.activeLao === "ALL" ? "6 Authorities" : `${data.length} Schemes`;
     const projProgressPct = data.length > 0 ? (completedUnits / data.length) * 100 : 0;
     if (projectProgressBar) projectProgressBar.style.width = `${Math.min(100, Math.max(0, projProgressPct)).toFixed(1)}%`;
   }

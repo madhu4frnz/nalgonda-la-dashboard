@@ -70,9 +70,7 @@ export const BOTTLENECK_HIGHLIGHTS = [
 ];
 
 export function isExcludedLao(lao) {
-  if (!lao) return false;
-  const l = String(lao).toLowerCase();
-  return l.includes("devarakonda");
+  return false; // Include 100% of records from Google Sheet without exclusions
 }
 
 export const SEED_ITEMS = [
@@ -387,6 +385,126 @@ export const SEED_ITEMS = [
     postAwardBalance: null,
     remarks: "Ac. 590.04 gts awardees demanding higher compensation. Ac. 224.09 gts consent proposal sent to Collector.",
     bottleneckCategory: "Market Value Revision"
+  },
+  {
+    slNo: 14,
+    lao: "RDO Devarakonda",
+    project: "Akkampally Reservoir (Lift)",
+    dtoToken: "2700673923, 07.06.2026",
+    creditDate: "18.08.2026",
+    releasedCr: 0.52,
+    disbursedYesterdayCr: 0.52,
+    disbursedTodayCr: 0.00,
+    totalDisbursedCr: 0.52,
+    balanceCr: 0.00,
+    totalBeneficiaries: 44,
+    beneficiariesPaid: 44,
+    balanceBeneficiaries: 0,
+    totalExtentAc: 4.28,
+    paymentCompletedExtentAc: 4.28,
+    balanceExtentAc: 0.00,
+    status: "Completed",
+    possession: "Yes",
+    postAwardCompleted: null,
+    postAwardBalance: null,
+    remarks: "Payment completed. Possession handed over to the irrigation Department",
+    bottleneckCategory: "None"
+  },
+  {
+    slNo: 15,
+    lao: "RDO Devarakonda",
+    project: "Ambabhavani lift irrigation",
+    dtoToken: "2523500831, 18.12.2024",
+    creditDate: "28.07.2026",
+    releasedCr: 0.32,
+    disbursedYesterdayCr: 0.32,
+    disbursedTodayCr: 0.00,
+    totalDisbursedCr: 0.32,
+    balanceCr: 0.00,
+    totalBeneficiaries: 35,
+    beneficiariesPaid: 35,
+    balanceBeneficiaries: 0,
+    totalExtentAc: 4.11,
+    paymentCompletedExtentAc: 4.11,
+    balanceExtentAc: 0.00,
+    status: "Completed",
+    possession: "Yes",
+    postAwardCompleted: null,
+    postAwardBalance: null,
+    remarks: "Payment completed. Possession handed over to the irrigation Department",
+    bottleneckCategory: "None"
+  },
+  {
+    slNo: 16,
+    lao: "RDO Devarakonda",
+    project: "Pendlipakala balancing Reservoir (LA for R&R Centre)",
+    dtoToken: "2522922019, 15.10.2024",
+    creditDate: "30.05.2026",
+    releasedCr: 16.03,
+    disbursedYesterdayCr: 10.95,
+    disbursedTodayCr: 0.00,
+    totalDisbursedCr: 10.95,
+    balanceCr: 5.08,
+    totalBeneficiaries: 51,
+    beneficiariesPaid: 29,
+    balanceBeneficiaries: 22,
+    totalExtentAc: 79.07,
+    paymentCompletedExtentAc: 39.25,
+    balanceExtentAc: 39.82,
+    status: "In Progress",
+    possession: "In Process",
+    postAwardCompleted: null,
+    postAwardBalance: null,
+    remarks: "Gummadavelly Village awardees not willing to receive the compensation due to alignment issue.",
+    bottleneckCategory: "Alignment Dispute"
+  },
+  {
+    slNo: 17,
+    lao: "RDO Devarakonda",
+    project: "Kistrainpally Balancing Reservoir",
+    dtoToken: "2523802442, 28.01.2025",
+    creditDate: "28.07.2026",
+    releasedCr: 3.18,
+    disbursedYesterdayCr: 0.00,
+    disbursedTodayCr: 0.00,
+    totalDisbursedCr: 0.00,
+    balanceCr: 3.18,
+    totalBeneficiaries: 18,
+    beneficiariesPaid: 0,
+    balanceBeneficiaries: 18,
+    totalExtentAc: 26.00,
+    paymentCompletedExtentAc: 0.00,
+    balanceExtentAc: 26.00,
+    status: "In Progress",
+    possession: "Pending",
+    postAwardCompleted: null,
+    postAwardBalance: null,
+    remarks: "Not willing to take compensation. Requesting to enhance compensation amount in view of market value revision.",
+    bottleneckCategory: "Market Value Revision"
+  },
+  {
+    slNo: 18,
+    lao: "RDO Devarakonda",
+    project: "Shivannagudem Balancing Reservoir",
+    dtoToken: "2701729737, 01.08.2026",
+    creditDate: "18.08.2026",
+    releasedCr: 15.50,
+    disbursedYesterdayCr: 12.08,
+    disbursedTodayCr: 0.00,
+    totalDisbursedCr: 12.08,
+    balanceCr: 3.42,
+    totalBeneficiaries: 22,
+    beneficiariesPaid: 18,
+    balanceBeneficiaries: 4,
+    totalExtentAc: 54.23,
+    paymentCompletedExtentAc: 43.23,
+    balanceExtentAc: 11.00,
+    status: "In Progress",
+    possession: "Pending",
+    postAwardCompleted: null,
+    postAwardBalance: null,
+    remarks: "The District Collector Nalgonda has conducted the meeting in the Village level in presence of the Hon'ble MLA Devarakonda, interacted with the Awardees and also convinced them to receive the compensation. Accordingly payments are under process.",
+    bottleneckCategory: "Active Disbursement"
   }
 ];
 
@@ -417,7 +535,7 @@ export function cleanStr(v) {
 /* ----------------------------------------------------
    LOCAL STORAGE CACHING
 ---------------------------------------------------- */
-const CACHE_PREFIX = "nalgonda_la_cache_v5_0_";
+const CACHE_PREFIX = "nalgonda_la_cache_v5_2_";
 
 export function getCachedData(sheetName) {
   try {

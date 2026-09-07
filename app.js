@@ -4,8 +4,8 @@
  * No bundlers, zero build steps.
  */
 
-import { fetchSheetData, KNOWN_SHEETS } from "./data.js?v=5.0";
-import { appState, getFilteredItems, getSortedItems } from "./state.js?v=5.0";
+import { fetchSheetData, KNOWN_SHEETS } from "./data.js?v=5.2";
+import { appState, getFilteredItems, getSortedItems } from "./state.js?v=5.2";
 import {
   renderResilienceBanner,
   renderTable,
@@ -16,8 +16,8 @@ import {
   renderBottleneckGrid,
   renderWhatIfSimulator,
   formatCr
-} from "./render.js?v=5.0";
-import { initOrUpdateCharts, resizeCharts } from "./charts.js?v=5.0";
+} from "./render.js?v=5.2";
+import { initOrUpdateCharts, resizeCharts } from "./charts.js?v=5.2";
 
 document.addEventListener("DOMContentLoaded", () => {
   let syncIntervalId = null;
