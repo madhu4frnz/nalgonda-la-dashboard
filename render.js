@@ -95,13 +95,17 @@ export function renderTable(state, options = {}) {
   const sorted = getSortedItems(filtered, state.sortField, state.sortAsc);
   const totalRaw = state.rawItems.length;
 
-  // 1. Update Record Counters
+  // 1. Update Record Counters & Header
+  const masterTableTitle = document.getElementById("masterTableTitle");
   if (state.activeProject !== "ALL" && filtered.length === 1) {
     if (tableRecordCount) tableRecordCount.textContent = `Showing 1 scheme (#${filtered[0].slNo} ${filtered[0].project}) • Filtered`;
+    if (masterTableTitle) masterTableTitle.textContent = `Scheme Detail: #${filtered[0].slNo} ${filtered[0].project}`;
   } else if (state.activeLao !== "ALL") {
     if (tableRecordCount) tableRecordCount.textContent = `Showing ${filtered.length} schemes under ${state.activeLao}`;
+    if (masterTableTitle) masterTableTitle.textContent = `Schemes under ${state.activeLao} (${filtered.length} Schemes)`;
   } else {
     if (tableRecordCount) tableRecordCount.textContent = `Showing ${filtered.length} of ${totalRaw} records`;
+    if (masterTableTitle) masterTableTitle.textContent = `Master Land Acquisition Ledger`;
   }
   if (ledgerCountPill) ledgerCountPill.textContent = filtered.length;
   if (sidebarLedgerBadge) sidebarLedgerBadge.textContent = filtered.length;
@@ -316,6 +320,9 @@ export function renderTable(state, options = {}) {
               <button class="btn btn-secondary btn-sm wa-detail-copy-btn">
                 Copy WhatsApp Format
               </button>
+              <button class="btn btn-secondary btn-sm drilldown-scheme-btn" style="color: var(--color-primary); border-color: var(--border-highlight);">
+                🔍 Focus on Scheme #${row.slNo}
+              </button>
             </div>
           </div>
         </td>
@@ -338,13 +345,23 @@ export function renderTable(state, options = {}) {
         });
       }
 
+      const drillBtn = detailTr.querySelector(".drilldown-scheme-btn");
+      if (drillBtn && options.onSelectProject) {
+        drillBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          options.onSelectProject(row.slNo);
+          const spotlight = document.getElementById("schemeSpotlightContainer");
+          if (spotlight) spotlight.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      }
+
       tableBody.appendChild(detailTr);
     }
   });
 }
 
 /* ----------------------------------------------------
-   LAO CIRCULAR PROGRESS BADGES & SPOTLIGHT
+   LAO CIRCULAR PROGRESS BADGES & AUTHORITY CARDS
 ---------------------------------------------------- */
 export function renderLaoCircles(state, onSelectLao) {
   const laoCirclesTrack = document.getElementById("laoCirclesTrack");
@@ -361,102 +378,9 @@ export function renderLaoCircles(state, onSelectLao) {
   ];
 
   laoCirclesTrack.innerHTML = "";
-
   const data = state.rawItems || [];
 
-  // When a specific LAO is clicked, render the Executive Spotlight card
-  if (state.activeLao !== "ALL") {
-    const selectedLao = laoList.find((l) => l.id === state.activeLao);
-    if (selectedLao) {
-      const filtered = data.filter((d) => d.lao === selectedLao.id);
-      const released = filtered.reduce((acc, d) => acc + (d.releasedCr || 0), 0);
-      const disbursed = filtered.reduce((acc, d) => acc + (d.totalDisbursedCr || 0), 0);
-      const balance = filtered.reduce((acc, d) => acc + (d.balanceCr || 0), 0);
-      const beneficiaries = filtered.reduce((acc, d) => acc + (d.beneficiariesPaid || 0), 0);
-      const totalBen = filtered.reduce((acc, d) => acc + (d.totalBeneficiaries || 0), 0);
-      const schemesCount = filtered.length;
-      const pct = released > 0 ? (disbursed / released) * 100 : 0;
-
-      const spotlight = document.createElement("div");
-      spotlight.className = "authority-spotlight-card";
-      spotlight.innerHTML = `
-        <div class="authority-spotlight-header">
-          <div class="authority-title-wrap">
-            <div class="authority-emblem-badge">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M3 21h18M3 10h18M5 10v11M19 10v11M9 10v11M15 10v11M4 10l8-7 8 7" />
-              </svg>
-            </div>
-            <div class="authority-spotlight-title">
-              <h3>${selectedLao.name}</h3>
-              <div class="authority-spotlight-meta">
-                <span>🏛️ Authority Sub-Division</span>
-                <span>•</span>
-                <span>${schemesCount} Schemes Active</span>
-                <span>•</span>
-                <span style="color: #38bdf8; font-weight: 600;">${pct.toFixed(1)}% Disbursed</span>
-              </div>
-            </div>
-          </div>
-          <div>
-            <button class="btn btn-secondary btn-sm" id="unhideAllAuthoritiesBtn">
-              ← All Authorities
-            </button>
-          </div>
-        </div>
-
-        <div class="authority-metrics-row">
-          <div class="authority-metric-cell">
-            <span class="label">Total Released</span>
-            <span class="val">${formatCr(released)}</span>
-            <span class="sub">Treasury Sanctioned</span>
-          </div>
-          <div class="authority-metric-cell">
-            <span class="label">Total Disbursed</span>
-            <span class="val" style="color: #34d399;">${formatCr(disbursed)}</span>
-            <span class="sub">${pct.toFixed(1)}% completed</span>
-          </div>
-          <div class="authority-metric-cell">
-            <span class="label">Balance to Disburse</span>
-            <span class="val" style="color: #fb7185;">${formatCr(balance)}</span>
-            <span class="sub">${schemesCount} active schemes</span>
-          </div>
-          <div class="authority-metric-cell">
-            <span class="label">Beneficiaries Paid</span>
-            <span class="val" style="color: #38bdf8;">${intFormatter.format(beneficiaries)}</span>
-            <span class="sub">of ${intFormatter.format(totalBen)} awardees</span>
-          </div>
-        </div>
-
-        <div class="compact-lao-switcher">
-          <span class="switcher-label">Switch Authority:</span>
-        </div>
-      `;
-
-      const switcher = spotlight.querySelector(".compact-lao-switcher");
-      laoList.forEach((lao) => {
-        const chip = document.createElement("button");
-        chip.className = `compact-lao-chip ${lao.id === state.activeLao ? 'active' : ''}`;
-        chip.textContent = lao.name;
-        chip.addEventListener("click", () => {
-          if (onSelectLao) onSelectLao(lao.id);
-        });
-        switcher.appendChild(chip);
-      });
-
-      const unhideBtn = spotlight.querySelector("#unhideAllAuthoritiesBtn");
-      if (unhideBtn) {
-        unhideBtn.addEventListener("click", () => {
-          if (onSelectLao) onSelectLao("ALL");
-        });
-      }
-
-      laoCirclesTrack.appendChild(spotlight);
-      return;
-    }
-  }
-
-  // Default: Render all 7 circular cards
+  // Always render all 7 authority cards so switching is effortless
   laoList.forEach((lao) => {
     let released = 0;
     let disbursed = 0;
@@ -486,7 +410,7 @@ export function renderLaoCircles(state, onSelectLao) {
     card.setAttribute("tabindex", "0");
     card.setAttribute("role", "button");
     card.setAttribute("aria-label", `${lao.name}: ${schemesCount} schemes, ${pct.toFixed(0)}% disbursed`);
-    card.title = `Click to filter: ${lao.name} (${pct.toFixed(1)}% disbursed)`;
+    card.title = `Click to view ${lao.name} (${schemesCount} schemes, ${pct.toFixed(1)}% disbursed)`;
 
     card.innerHTML = `
       <span class="lao-active-pill"></span>
@@ -501,18 +425,18 @@ export function renderLaoCircles(state, onSelectLao) {
         </div>
       </div>
       <div class="lao-circle-name">${lao.name}</div>
-      <div class="lao-circle-amount">${formatCr(disbursed)}</div>
+      <div class="lao-circle-amount">${formatCr(disbursed)} Cr</div>
       <div class="lao-circle-stat">${schemesCount} Schemes</div>
     `;
 
     card.addEventListener("click", () => {
-      if (onSelectLao) onSelectLao(lao.id);
+      if (onSelectLao) onSelectLao(lao.id === state.activeLao && lao.id !== "ALL" ? "ALL" : lao.id);
     });
 
     card.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
-        if (onSelectLao) onSelectLao(lao.id);
+        if (onSelectLao) onSelectLao(lao.id === state.activeLao && lao.id !== "ALL" ? "ALL" : lao.id);
       }
     });
 
@@ -533,116 +457,22 @@ export function renderProjectCircles(state, onSelectProject, onSendWhatsApp) {
 
   if (state.activeLao === "ALL") {
     panel.style.display = "none";
+    renderSchemeSpotlight(state, onSendWhatsApp, onSelectProject);
     return;
   }
 
   const projects = state.rawItems.filter((d) => d.lao === state.activeLao);
   if (projects.length === 0) {
     panel.style.display = "none";
+    renderSchemeSpotlight(state, onSendWhatsApp, onSelectProject);
     return;
   }
 
-  panel.style.display = "flex";
-  if (title) title.textContent = `${state.activeLao} Projects`;
+  panel.style.display = "block";
+  if (title) title.textContent = `Schemes under ${state.activeLao}`;
   if (badge) badge.textContent = `${projects.length} Schemes`;
 
   track.innerHTML = "";
-
-  // Spotlight card if a single project is active
-  if (state.activeProject !== "ALL") {
-    const proj = projects.find((p) => String(p.slNo) === String(state.activeProject));
-    if (proj) {
-      const rel = proj.releasedCr || 0;
-      const dis = proj.totalDisbursedCr || 0;
-      const bal = proj.balanceCr || 0;
-      const pct = rel > 0 ? (dis / rel) * 100 : 0;
-
-      const spotlight = document.createElement("div");
-      spotlight.className = "scheme-spotlight-card";
-      spotlight.innerHTML = `
-        <div class="scheme-spotlight-header">
-          <div class="scheme-title-wrap">
-            <span class="scheme-sl-badge">#${proj.slNo}</span>
-            <div class="scheme-title-text">
-              <h3>${proj.project}</h3>
-              <div class="scheme-meta-row">
-                <span class="meta-item">🏢 ${proj.lao}</span>
-                <span class="meta-item">•</span>
-                <span class="meta-item">DTO: ${proj.dtoToken || 'N/A'}</span>
-                <span class="meta-item">•</span>
-                <span class="status-badge ${proj.status.includes('Completed') ? 'status-completed' : 'status-in-progress'}">${proj.status}</span>
-              </div>
-            </div>
-          </div>
-          <div class="scheme-actions">
-            <button class="btn btn-whatsapp btn-sm wa-scheme-share-btn">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.746.953 3.71 1.456 5.711 1.456h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
-              </svg>
-              Share Scheme
-            </button>
-            <button class="btn btn-secondary btn-sm" id="closeSchemeSpotlightBtn">
-              ✕ All ${projects.length} Schemes
-            </button>
-          </div>
-        </div>
-
-        <div class="scheme-metrics-strip">
-          <div class="scheme-metric-col">
-            <span class="sub">Disbursed</span>
-            <span class="big" style="color: #34d399;">${formatCr(dis)}</span>
-            <span class="sub">${pct.toFixed(1)}% of ${formatCr(rel)}</span>
-          </div>
-          <div class="scheme-metric-col">
-            <span class="sub">Balance to Pay</span>
-            <span class="big" style="color: ${bal > 0 ? '#fb7185' : 'var(--text-muted)'};">${formatCr(bal)}</span>
-            <span class="sub">${proj.balanceBeneficiaries} awardees remaining</span>
-          </div>
-          <div class="scheme-metric-col">
-            <span class="sub">Beneficiaries</span>
-            <span class="big" style="color: #38bdf8;">${intFormatter.format(proj.beneficiariesPaid)}</span>
-            <span class="sub">of ${intFormatter.format(proj.totalBeneficiaries)} awardees</span>
-          </div>
-          <div class="scheme-metric-col">
-            <span class="sub">Acquisition Extent</span>
-            <span class="big" style="color: #818cf8;">${proj.paymentCompletedExtentAc.toFixed(2)} Ac</span>
-            <span class="sub">of ${proj.totalExtentAc.toFixed(2)} Total Acres</span>
-          </div>
-        </div>
-
-        <div class="scheme-pills-strip">
-          <span class="pills-label">Switch Scheme:</span>
-        </div>
-      `;
-
-      const pillsStrip = spotlight.querySelector(".scheme-pills-strip");
-      projects.forEach((p) => {
-        const chip = document.createElement("button");
-        chip.className = `scheme-nav-chip ${String(p.slNo) === String(state.activeProject) ? 'active' : ''}`;
-        chip.textContent = `#${p.slNo} ${p.project.length > 20 ? p.project.substring(0, 20) + '...' : p.project}`;
-        chip.title = p.project;
-        chip.addEventListener("click", () => {
-          if (onSelectProject) onSelectProject(p.slNo);
-        });
-        pillsStrip.appendChild(chip);
-      });
-
-      const closeBtn = spotlight.querySelector("#closeSchemeSpotlightBtn");
-      if (closeBtn) {
-        closeBtn.addEventListener("click", () => {
-          if (onSelectProject) onSelectProject("ALL");
-        });
-      }
-
-      const waBtn = spotlight.querySelector(".wa-scheme-share-btn");
-      if (waBtn && onSendWhatsApp) {
-        waBtn.addEventListener("click", () => onSendWhatsApp(proj));
-      }
-
-      track.appendChild(spotlight);
-      return;
-    }
-  }
 
   // Card 0: "All Schemes in Authority" Card
   const allCard = document.createElement("div");
@@ -666,7 +496,7 @@ export function renderProjectCircles(state, onSelectProject, onSendWhatsApp) {
       </div>
     </div>
     <div class="project-circle-name">All ${projects.length} Schemes</div>
-    <div class="project-circle-amount">${formatCr(laoTotalDis)}</div>
+    <div class="project-circle-amount">${formatCr(laoTotalDis)} Cr</div>
     <div class="project-circle-stat">Authority Total</div>
   `;
 
@@ -703,7 +533,7 @@ export function renderProjectCircles(state, onSelectProject, onSendWhatsApp) {
         </div>
       </div>
       <div class="project-circle-name" title="${proj.project}">${proj.project}</div>
-      <div class="project-circle-amount">${formatCr(dis)}</div>
+      <div class="project-circle-amount">${formatCr(dis)} Cr</div>
       <div class="project-circle-stat">${proj.paymentCompletedExtentAc.toFixed(0)} Ac • ${intFormatter.format(proj.beneficiariesPaid)} Ben.</div>
     `;
 
@@ -715,6 +545,210 @@ export function renderProjectCircles(state, onSelectProject, onSendWhatsApp) {
 
     track.appendChild(card);
   });
+
+  // Render the Scheme Spotlight Card if a single scheme is active
+  renderSchemeSpotlight(state, onSendWhatsApp, onSelectProject);
+}
+
+/* ----------------------------------------------------
+   EXECUTIVE SCHEME DEEP-DIVE SPOTLIGHT CARD
+---------------------------------------------------- */
+export function renderSchemeSpotlight(state, onSendWhatsApp, onSelectProject) {
+  const container = document.getElementById("schemeSpotlightContainer");
+  if (!container) return;
+
+  if (state.activeProject === "ALL") {
+    container.style.display = "none";
+    container.innerHTML = "";
+    return;
+  }
+
+  const proj = state.rawItems.find((p) => String(p.slNo) === String(state.activeProject));
+  if (!proj) {
+    container.style.display = "none";
+    container.innerHTML = "";
+    return;
+  }
+
+  const rel = proj.releasedCr || 0;
+  const dis = proj.totalDisbursedCr || 0;
+  const bal = proj.balanceCr || 0;
+  const pct = rel > 0 ? (dis / rel) * 100 : 0;
+  const statusClass = (proj.status || "").toLowerCase().includes("completed") ? "status-completed" : "status-in-progress";
+
+  const isDtoPassed = !!proj.dtoToken && proj.dtoToken !== "—" && proj.dtoToken.trim() !== "";
+  const isCredited = dis > 0;
+  const isDisbursed100 = pct >= 95;
+  const isHandedOver = (proj.possession || "").toLowerCase().includes("yes");
+
+  const step1Class = "completed";
+  const step2Class = "completed";
+  const step3Class = "completed";
+  const step4Class = isDtoPassed ? "completed" : "active";
+  const step5Class = isDisbursed100 ? "completed" : isCredited ? "active" : "pending";
+  const step6Class = isHandedOver ? "completed" : (isCredited ? "active" : "pending");
+
+  container.style.display = "block";
+  container.innerHTML = `
+    <div class="scheme-spotlight-card">
+      <div class="scheme-spotlight-header">
+        <div class="scheme-title-wrap">
+          <span class="scheme-sl-badge">#${proj.slNo}</span>
+          <div class="scheme-title-text">
+            <div class="eyebrow">${escapeHtml(proj.lao)} • SCHEME DETAIL</div>
+            <h3>${escapeHtml(proj.project)}</h3>
+            <div class="scheme-meta-row">
+              <span class="meta-item">📄 DTO Token: <strong>${escapeHtml(proj.dtoToken || 'N/A')}</strong></span>
+              <span class="meta-sep">•</span>
+              <span class="meta-item">🗓️ Credit Date: <strong>${escapeHtml(proj.creditDate || 'N/A')}</strong></span>
+              <span class="meta-sep">•</span>
+              <span class="status-badge ${statusClass}">${escapeHtml(proj.status || 'In Progress')}</span>
+            </div>
+          </div>
+        </div>
+        <div class="scheme-actions">
+          <button class="btn btn-whatsapp btn-sm" id="spotlightWhatsAppBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.746.953 3.71 1.456 5.711 1.456h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+            </svg>
+            Share on WhatsApp
+          </button>
+          <button class="btn btn-secondary btn-sm" id="closeSpotlightCardBtn">
+            ✕ Show All Schemes
+          </button>
+        </div>
+      </div>
+
+      <!-- Statutory Milestone LifeFlow (BananaPatterns Inspired) -->
+      <div class="scheme-lifeflow-card">
+        <div class="lifeflow-header">
+          <div class="lifeflow-title">
+            <span>⚡ Statutory Land Acquisition Milestones</span>
+            <span class="status-badge ${isHandedOver ? 'status-completed' : 'status-in-progress'}" style="font-size: 0.675rem;">
+              ${isHandedOver ? '✓ Possession Handed Over' : 'In Progress'}
+            </span>
+          </div>
+          <span class="lifeflow-subtitle">Procedural lifecycle under RFCTLARR Act 2013</span>
+        </div>
+        <div class="lifeflow-steps">
+          <div class="lstep ${step1Class}">
+            <div class="lstep-badge">
+              <span class="lnum">1</span>
+            </div>
+            <div class="ltxt">
+              <b>11(1) Preliminary</b>
+              <span>Notification Gazette</span>
+            </div>
+          </div>
+          <div class="lstep ${step2Class}">
+            <div class="lstep-badge">
+              <span class="lnum">2</span>
+            </div>
+            <div class="ltxt">
+              <b>19(1) Declaration</b>
+              <span>Survey & Claims</span>
+            </div>
+          </div>
+          <div class="lstep ${step3Class}">
+            <div class="lstep-badge">
+              <span class="lnum">3</span>
+            </div>
+            <div class="ltxt">
+              <b>Award Valuation</b>
+              <span>Passed by LAO</span>
+            </div>
+          </div>
+          <div class="lstep ${step4Class}">
+            <div class="lstep-badge">
+              <span class="lnum">4</span>
+            </div>
+            <div class="ltxt">
+              <b>DTO Token</b>
+              <span>${escapeHtml(proj.dtoToken || 'Under Process')}</span>
+            </div>
+          </div>
+          <div class="lstep ${step5Class}">
+            <div class="lstep-badge">
+              <span class="lnum">5</span>
+            </div>
+            <div class="ltxt">
+              <b>Disbursement</b>
+              <span>${pct.toFixed(0)}% (${formatCr(dis)} Cr)</span>
+            </div>
+          </div>
+          <div class="lstep ${step6Class}">
+            <div class="lstep-badge">
+              <span class="lnum">6</span>
+            </div>
+            <div class="ltxt">
+              <b>Possession</b>
+              <span>${isHandedOver ? 'Handed Over' : 'Pending Transfer'}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="scheme-spotlight-metrics-grid">
+        <div class="spotlight-metric-box">
+          <span class="box-label">Disbursed Funds</span>
+          <span class="box-val text-green">${formatCr(dis)} Cr</span>
+          <div class="box-progress-bar">
+            <div class="box-bar-fill" style="width: ${Math.min(100, Math.max(0, pct))}%;"></div>
+          </div>
+          <span class="box-sub">${pct.toFixed(1)}% of ${formatCr(rel)} Cr Released</span>
+        </div>
+
+        <div class="spotlight-metric-box">
+          <span class="box-label">Balance to Pay</span>
+          <span class="box-val ${bal > 0 ? 'text-rose' : 'text-muted'}">${formatCr(bal)} Cr</span>
+          <span class="box-sub">${proj.balanceBeneficiaries || 0} awardees pending</span>
+        </div>
+
+        <div class="spotlight-metric-box">
+          <span class="box-label">Beneficiaries Paid</span>
+          <span class="box-val text-cyan">${intFormatter.format(proj.beneficiariesPaid || 0)}</span>
+          <span class="box-sub">of ${intFormatter.format(proj.totalBeneficiaries || 0)} Total Awardees</span>
+        </div>
+
+        <div class="spotlight-metric-box">
+          <span class="box-label">Acquisition Extent</span>
+          <span class="box-val text-purple">${(proj.paymentCompletedExtentAc || 0).toFixed(2)} Ac</span>
+          <span class="box-sub">of ${(proj.totalExtentAc || 0).toFixed(2)} Total Acres (${(proj.balanceExtentAc || 0).toFixed(2)} Ac remaining)</span>
+        </div>
+      </div>
+
+      <div class="scheme-spotlight-details-row">
+        <div class="detail-intel-card">
+          <div class="intel-item">
+            <span class="intel-title">🚩 Possession Handover:</span>
+            <span class="intel-value ${proj.possession === 'Yes' ? 'text-green' : 'text-amber'}">${proj.possession || 'Pending'}</span>
+          </div>
+          <div class="intel-item">
+            <span class="intel-title">📋 Post-Award Status:</span>
+            <span class="intel-value">Completed: ${proj.postAwardCompleted || '0.0'} Ac • Balance: ${proj.postAwardBalance || '0.0'} Ac</span>
+          </div>
+          <div class="intel-item">
+            <span class="intel-title">⚠️ Bottleneck Category:</span>
+            <span class="intel-value">${proj.bottleneckCategory || 'None'}</span>
+          </div>
+        </div>
+        <div class="detail-remarks-card">
+          <span class="remarks-card-title">📝 Official Field Remarks & Notes:</span>
+          <p class="remarks-card-body">${escapeHtml(proj.remarks || 'No remarks recorded.')}</p>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const waBtn = container.querySelector("#spotlightWhatsAppBtn");
+  if (waBtn && onSendWhatsApp) {
+    waBtn.addEventListener("click", () => onSendWhatsApp(proj));
+  }
+
+  const closeBtn = container.querySelector("#closeSpotlightCardBtn");
+  if (closeBtn && onSelectProject) {
+    closeBtn.addEventListener("click", () => onSelectProject("ALL"));
+  }
 }
 
 /* ----------------------------------------------------
@@ -791,13 +825,13 @@ export function renderKPICards(state) {
   if (kpi3Title) kpi3Title.textContent = isSingleProject ? "Acquisition Area Cleared" : "Land Extent Secured";
   if (kpi3Unit) kpi3Unit.textContent = isSingleProject ? `of ${totalExtent.toFixed(2)} Acres` : "Acres Cleared";
 
-  const kpiCompExt = document.getElementById("kpiCompletedExtentAc");
+  const kpiCompExt = document.getElementById("kpiCompletedExtent") || document.getElementById("kpiCompletedExtentAc");
   if (kpiCompExt) kpiCompExt.textContent = inrFormatter.format(completedExtent);
 
-  const kpiTotExt = document.getElementById("kpiTotalExtentAc");
+  const kpiTotExt = document.getElementById("kpiTotalExtent") || document.getElementById("kpiTotalExtentAc");
   if (kpiTotExt) kpiTotExt.textContent = `${inrFormatter.format(totalExtent)} Ac`;
 
-  const kpiBalExt = document.getElementById("kpiBalanceExtentAc");
+  const kpiBalExt = document.getElementById("kpiBalanceExtent") || document.getElementById("kpiBalanceExtentAc");
   if (kpiBalExt) kpiBalExt.textContent = `${inrFormatter.format(balanceExtent)} Ac`;
 
   const extPctEl = document.getElementById("extentPct");
@@ -810,28 +844,35 @@ export function renderKPICards(state) {
   const kpiTotProj = document.getElementById("kpiTotalProjects");
 
   if (isSingleProject) {
+    const single = data[0];
     if (kpi4Title) kpi4Title.textContent = "Scheme Status";
     if (kpi4Unit) kpi4Unit.textContent = "Current Status";
-    if (kpiTotProj) kpiTotProj.textContent = data[0].status || "In Progress";
-  } else if (state.activeLao !== "ALL") {
-    if (kpi4Title) kpi4Title.textContent = `${state.activeLao} Schemes`;
-    if (kpi4Unit) kpi4Unit.textContent = "Schemes in Office";
-    if (kpiTotProj) kpiTotProj.textContent = data.length;
+    if (kpiTotProj) kpiTotProj.textContent = single.status || "In Progress";
+    
+    const kpiCompUnits = document.getElementById("kpiCompletedUnits");
+    if (kpiCompUnits) kpiCompUnits.innerHTML = `DTO: <strong>${escapeHtml(single.dtoToken || 'N/A')}</strong>`;
+
+    const kpiActiveUnits = document.getElementById("kpiActiveUnits");
+    if (kpiActiveUnits) kpiActiveUnits.innerHTML = `Possession: <strong>${single.possession || 'Pending'}</strong>`;
+
+    const projPctEl = document.getElementById("projectPct");
+    if (projPctEl) projPctEl.textContent = "Scheme";
+    setRadialGauge("projectGaugeBar", (single.status || "").toLowerCase().includes("completed") ? 100 : 50);
   } else {
-    if (kpi4Title) kpi4Title.textContent = "Project Schemes";
-    if (kpi4Unit) kpi4Unit.textContent = "Active Sub-Entries";
+    if (kpi4Title) kpi4Title.textContent = state.activeLao !== "ALL" ? `${state.activeLao} Schemes` : "Project Schemes";
+    if (kpi4Unit) kpi4Unit.textContent = state.activeLao !== "ALL" ? "Schemes in Office" : "Active Sub-Entries";
     if (kpiTotProj) kpiTotProj.textContent = data.length;
+
+    const kpiCompUnits = document.getElementById("kpiCompletedUnits");
+    if (kpiCompUnits) kpiCompUnits.textContent = `${completedUnits} Completed`;
+
+    const kpiActiveUnits = document.getElementById("kpiActiveUnits");
+    if (kpiActiveUnits) kpiActiveUnits.textContent = `${activeUnits} In Progress`;
+
+    const projPctEl = document.getElementById("projectPct");
+    if (projPctEl) projPctEl.textContent = state.activeLao === "ALL" ? "6 LAOs" : `${data.length} Schemes`;
+    setRadialGauge("projectGaugeBar", data.length > 0 ? (completedUnits / data.length) * 100 : 0);
   }
-
-  const kpiCompUnits = document.getElementById("kpiCompletedUnits");
-  if (kpiCompUnits) kpiCompUnits.textContent = `${completedUnits} Completed`;
-
-  const kpiActiveUnits = document.getElementById("kpiActiveUnits");
-  if (kpiActiveUnits) kpiActiveUnits.textContent = `${activeUnits} Schemes`;
-
-  const projPctEl = document.getElementById("projectPct");
-  if (projPctEl) projPctEl.textContent = state.activeLao === "ALL" ? "6 LAOs" : `${data.length} Units`;
-  setRadialGauge("projectGaugeBar", data.length > 0 ? (completedUnits / data.length) * 100 : 0);
 }
 
 function setRadialGauge(id, percentage) {

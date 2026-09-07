@@ -76,6 +76,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         appState.setState({ expandedRows: new Set(state.expandedRows) });
       },
+      onSelectProject: (slNo) => {
+        appState.setState({ activeProject: slNo });
+      },
       onSendWhatsApp: (row) => sendProjectWhatsApp(row),
       onCopyWhatsApp: (row) => copyProjectWhatsApp(row),
       onResetFilters: () => resetAllFilters(),
