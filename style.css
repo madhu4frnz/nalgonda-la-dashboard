@@ -4139,3 +4139,175 @@ input:checked + .slider:before {
 
 
 
+/* ==============================================================
+   COMPREHENSIVE RESPONSIVE & UX FIX  (v4.1)
+   Covers: donut card sizing, touch targets, readability, grids
+============================================================== */
+
+/* ─── Spotlight metrics: 2-col on small screens ─────────────── */
+@media (max-width: 768px) {
+  .scheme-spotlight-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .scheme-spotlight-details-row {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .scheme-spotlight-header {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .scheme-actions {
+    width: 100%;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .scheme-actions .btn {
+    flex: 1;
+    justify-content: center;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .scheme-spotlight-metrics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ─── LAO Donut cards: scroll + compact on mobile ────────────── */
+@media (max-width: 768px) {
+  .lao-circles-track {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.65rem;
+    gap: 0.65rem;
+    scrollbar-width: none;
+  }
+  .lao-circles-track::-webkit-scrollbar { display: none; }
+
+  .lao-donut-card {
+    min-width: 130px;
+    max-width: 150px;
+    flex-shrink: 0;
+    scroll-snap-align: start;
+    padding: 0.85rem 0.6rem 0.7rem;
+  }
+  .lao-donut-card .donut-wrap { width: 82px; height: 82px; }
+  .lao-donut-card .donut-pct  { font-size: 0.95rem; }
+  .lao-donut-card .donut-code { font-size: 0.58rem; }
+  .lao-donut-card .donut-name { font-size: 0.75rem; }
+  .lao-donut-card .donut-amount { font-size: 0.8rem; }
+  .lao-donut-card .donut-meta { font-size: 0.62rem; }
+}
+
+/* ─── Scheme donut cards: scroll + compact on mobile ─────────── */
+@media (max-width: 768px) {
+  .project-circles-track {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.65rem;
+    gap: 0.65rem;
+    scrollbar-width: none;
+  }
+  .project-circles-track::-webkit-scrollbar { display: none; }
+
+  .scheme-donut-card {
+    min-width: 120px;
+    max-width: 138px;
+    flex-shrink: 0;
+    scroll-snap-align: start;
+    padding: 0.8rem 0.55rem 0.7rem;
+  }
+  .scheme-donut-card .donut-wrap  { width: 72px; height: 72px; }
+  .scheme-donut-card .donut-pct   { font-size: 0.85rem; }
+  .scheme-donut-card .donut-name  { font-size: 0.72rem; white-space: normal; word-break: break-word; }
+  .scheme-donut-card .donut-amount { font-size: 0.76rem; }
+  .scheme-donut-card .donut-meta  { font-size: 0.6rem; }
+}
+
+/* ─── KPI grid: 2 cols on tablet/mobile, 1 only on very small ── */
+@media (max-width: 992px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+}
+@media (max-width: 400px) {
+  .kpi-grid { grid-template-columns: 1fr; }
+}
+
+/* ─── Dashboard main padding ─────────────────────────────────── */
+@media (max-width: 480px) {
+  .dashboard-main { padding: 0.65rem 0.75rem; gap: 0.85rem; }
+}
+
+/* ─── Touch targets: 44px minimum ───────────────────────────── */
+@media (max-width: 992px) {
+  .btn, .btn-icon, .tab-pill { min-height: 40px; }
+  .tab-pill { padding: 0.5rem 0.9rem; font-size: 0.82rem; }
+}
+
+/* ─── Tab pills: scrollable, no wrap ─────────────────────────── */
+@media (max-width: 600px) {
+  .tab-pill { font-size: 0.76rem; padding: 0.45rem 0.7rem; white-space: nowrap; }
+  .tab-pill-badge { display: none; }
+}
+
+/* ─── Drilldown panel: compact ───────────────────────────────── */
+@media (max-width: 600px) {
+  .project-drilldown-panel { padding: 0.75rem; }
+  .project-drilldown-header { flex-direction: column; align-items: flex-start; gap: 0.4rem; }
+  .project-drilldown-actions { width: 100%; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.4rem; }
+  .drilldown-guide { font-size: 0.7rem; }
+}
+
+/* ─── Donut name: 2-line clamp everywhere ─────────────────────── */
+.donut-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+  word-break: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* ─── Spotlight card: stack on narrow ────────────────────────── */
+@media (max-width: 900px) {
+  .scheme-spotlight-card { padding: 1.1rem; }
+  .scheme-title-wrap { flex-direction: column; gap: 0.5rem; }
+  .scheme-sl-badge { align-self: flex-start; }
+}
+
+/* ─── Filter panel ───────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .filter-panel { flex-direction: column; padding: 0.85rem; gap: 0.75rem; }
+  .filter-group, .search-wrap { width: 100%; }
+  .select-control, .search-input { width: 100%; font-size: 16px; min-height: 44px; padding: 0.6rem 0.85rem; }
+}
+
+/* ─── Table: horizontal scroll ───────────────────────────────── */
+@media (max-width: 700px) {
+  .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .mobile-table-hint { display: block !important; }
+  th, td { font-size: 0.78rem; padding: 0.55rem 0.65rem; white-space: nowrap; }
+}
+
+/* ─── Prevent horizontal overflow everywhere ─────────────────── */
+section, .tab-view-section, .lao-circles-section, .kpi-grid,
+.project-drilldown-panel, .scheme-spotlight-container {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* ─── LAO section header compact ─────────────────────────────── */
+@media (max-width: 900px) {
+  .lao-section-header { flex-direction: column; align-items: flex-start; gap: 0.3rem; }
+  .lao-section-title  { font-size: 0.88rem; }
+}
