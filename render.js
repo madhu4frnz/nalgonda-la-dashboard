@@ -3,8 +3,8 @@
  * ES Module: All DOM rendering, 3 explicit UI states, Skeletons, Resilience Banner
  */
 
-import { getFilteredItems, getSortedItems, calculateSimulation } from "./state.js?v=2.2";
-import { BOTTLENECK_HIGHLIGHTS } from "./data.js?v=2.2";
+import { getFilteredItems, getSortedItems, calculateSimulation } from "./state.js?v=2.3";
+import { BOTTLENECK_HIGHLIGHTS } from "./data.js?v=2.3";
 
 /* ----------------------------------------------------
    NUMBER FORMATTING UTILITIES (INDIAN LOCALE)

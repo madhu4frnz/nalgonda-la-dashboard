@@ -4,8 +4,8 @@
  * No bundlers, zero build steps.
  */
 
-import { fetchSheetData, KNOWN_SHEETS } from "./data.js?v=2.2";
-import { appState, getFilteredItems, getSortedItems } from "./state.js?v=2.2";
+import { fetchSheetData, KNOWN_SHEETS } from "./data.js?v=2.3";
+import { appState, getFilteredItems, getSortedItems } from "./state.js?v=2.3";
 import {
   renderResilienceBanner,
   renderTable,
@@ -13,12 +13,11 @@ import {
   renderProjectCircles,
   renderKPICards,
   renderScopeBanner,
-  renderSidebarLaoNav,
   renderBottleneckGrid,
   renderWhatIfSimulator,
   formatCr
-} from "./render.js?v=2.2";
-import { initOrUpdateCharts, resizeCharts } from "./charts.js?v=2.2";
+} from "./render.js?v=2.3";
+import { initOrUpdateCharts, resizeCharts } from "./charts.js?v=2.3";
 
 document.addEventListener("DOMContentLoaded", () => {
   let syncIntervalId = null;
@@ -115,16 +114,7 @@ document.addEventListener("DOMContentLoaded", () => {
       onSendWhatsApp: (project) => sendProjectWhatsApp(project)
     });
 
-    // 5. Sidebar Nav & Obstacles
-    renderSidebarLaoNav(state, (laoId) => {
-      appState.setState({
-        activeLao: laoId,
-        activeProject: "ALL"
-      });
-      if (laoFilter) laoFilter.value = laoId;
-      closeMobileSidebar();
-    });
-
+    // 5. Critical Obstacles & What-If Simulator
     renderBottleneckGrid(state, (item) => sendBottleneckWhatsApp(item));
 
     // 6. What-If Simulator
