@@ -360,99 +360,112 @@ export function renderTable(state, options = {}) {
   });
 }
 
-/* ----------------------------------------------------
-   LAO EXECUTIVE CARDS & AUTHORITY SELECTION
----------------------------------------------------- */
+/* ------------------------------------------------------------------
+   HELPER – build a circular SVG donut arc
+   r=40, cx=50, cy=50 → circumference ≈ 251.33
+   We keep stroke-width at 8 so ring is visible but not overpowering
+------------------------------------------------------------------ */
+function buildDonutSVG(pct, color) {
+  const R = 40, C = 2 * Math.PI * R;        // circumference ≈ 251.33
+  const clamped = Math.min(100, Math.max(0, pct));
+  const dash   = (clamped / 100) * C;
+  const gap    = C - dash;
+  return `
+    <svg viewBox="0 0 100 100" class="donut-svg" aria-hidden="true">
+      <circle cx="50" cy="50" r="${R}" class="donut-bg"/>
+      <circle cx="50" cy="50" r="${R}" class="donut-fill"
+        stroke="${color}"
+        stroke-dasharray="${dash.toFixed(2)} ${gap.toFixed(2)}"
+        transform="rotate(-90 50 50)"/>
+    </svg>`;
+}
+
+/* ------------------------------------------------------------------
+   LAO AUTHORITY CIRCULAR CARDS
+------------------------------------------------------------------ */
 export function renderLaoCircles(state, onSelectLao) {
   const laoCirclesTrack = document.getElementById("laoCirclesTrack");
   if (!laoCirclesTrack) return;
 
   const laoList = [
-    { id: "ALL", name: "All District", short: "DIST" },
-    { id: "SDC Unit-I", name: "SDC Unit-I", short: "SDC-I" },
-    { id: "SDC Unit-II", name: "SDC Unit-II", short: "SDC-II" },
-    { id: "RDO Miryalaguda", name: "Miryalaguda", short: "MLG" },
-    { id: "RDO Nalgonda", name: "Nalgonda", short: "NLG" },
+    { id: "ALL",              name: "All District",  short: "DIST" },
+    { id: "SDC Unit-I",      name: "SDC Unit-I",   short: "SDC-I" },
+    { id: "SDC Unit-II",     name: "SDC Unit-II",  short: "SDC-II" },
+    { id: "RDO Miryalaguda", name: "Miryalaguda",  short: "MLG" },
+    { id: "RDO Nalgonda",    name: "Nalgonda",     short: "NLG" },
     { id: "PA to SPL Collector", name: "Spl Collector", short: "SPL" }
   ];
 
   laoCirclesTrack.innerHTML = "";
   const data = state.rawItems || [];
 
-  // Render all 6 authorities cleanly
   laoList.forEach((lao) => {
-    let released = 0;
-    let disbursed = 0;
-    let schemesCount = 0;
+    let released = 0, disbursed = 0, schemesCount = 0;
 
     if (lao.id === "ALL") {
-      released = data.reduce((acc, d) => acc + (d.releasedCr || 0), 0);
-      disbursed = data.reduce((acc, d) => acc + (d.totalDisbursedCr || 0), 0);
+      released     = data.reduce((a, d) => a + (d.releasedCr || 0), 0);
+      disbursed    = data.reduce((a, d) => a + (d.totalDisbursedCr || 0), 0);
       schemesCount = data.length;
     } else {
-      const filtered = data.filter((d) => d.lao === lao.id);
-      released = filtered.reduce((acc, d) => acc + (d.releasedCr || 0), 0);
-      disbursed = filtered.reduce((acc, d) => acc + (d.totalDisbursedCr || 0), 0);
-      schemesCount = filtered.length;
+      const f      = data.filter((d) => d.lao === lao.id);
+      released     = f.reduce((a, d) => a + (d.releasedCr || 0), 0);
+      disbursed    = f.reduce((a, d) => a + (d.totalDisbursedCr || 0), 0);
+      schemesCount = f.length;
     }
 
-    const pct = released > 0 ? (disbursed / released) * 100 : 0;
+    const pct        = released > 0 ? (disbursed / released) * 100 : 0;
     const isSelected = state.activeLao === lao.id;
 
-    let themeClass = "color-amber";
-    if (pct >= 60) themeClass = "color-emerald";
-    else if (pct >= 30) themeClass = "color-sky";
+    /* Colour palette */
+    let color = "#f59e0b";               // amber  < 30 %
+    if (pct >= 60) color = "#10b981";   // emerald
+    else if (pct >= 30) color = "#38bdf8"; // sky
 
     const card = document.createElement("div");
-    card.className = `lao-circle-card ${isSelected ? 'active' : ''}`;
+    card.className = `lao-donut-card ${isSelected ? "active" : ""}`;
     card.dataset.lao = lao.id;
     card.setAttribute("tabindex", "0");
     card.setAttribute("role", "button");
-    card.setAttribute("aria-label", `${lao.name}: ${schemesCount} schemes, ${pct.toFixed(1)}% disbursed`);
-    card.title = `Click to filter ${lao.name} (${schemesCount} schemes, ${pct.toFixed(1)}% disbursed)`;
+    card.setAttribute("aria-label",
+      `${lao.name}: ${schemesCount} schemes, ${pct.toFixed(1)}% disbursed`);
 
     card.innerHTML = `
-      <div class="lao-card-top">
-        <span class="lao-code-badge">${lao.short}</span>
-        <span class="lao-pct-pill ${themeClass}">${pct.toFixed(1)}%</span>
+      <div class="donut-wrap">
+        ${buildDonutSVG(pct, color)}
+        <div class="donut-center">
+          <span class="donut-pct" style="color:${color}">${pct.toFixed(0)}%</span>
+          <span class="donut-code">${lao.short}</span>
+        </div>
       </div>
-      <div class="lao-card-name">${escapeHtml(lao.name)}</div>
-      <div class="lao-card-amount-wrap">
-        <span class="lao-card-amount">₹${disbursed.toFixed(2)} Cr</span>
-        <span class="lao-card-sublabel">Disbursed</span>
+      <div class="donut-card-body">
+        <div class="donut-name">${escapeHtml(lao.name)}</div>
+        <div class="donut-amount" style="color:${color}">₹${disbursed.toFixed(2)} Cr</div>
+        <div class="donut-meta">${schemesCount} Scheme${schemesCount !== 1 ? "s" : ""} · of ₹${released.toFixed(2)} Cr</div>
       </div>
-      <div class="lao-linear-meter">
-        <div class="lao-meter-fill ${themeClass}" style="width: ${Math.min(100, Math.max(0, pct)).toFixed(1)}%;"></div>
-      </div>
-      <div class="lao-card-footer">
-        <span>${schemesCount} ${schemesCount === 1 ? 'Scheme' : 'Schemes'}</span>
-        <span>of ₹${released.toFixed(2)} Cr</span>
-      </div>
+      ${isSelected ? '<span class="donut-active-dot"></span>' : ""}
     `;
 
-    card.addEventListener("click", () => {
-      if (onSelectLao) onSelectLao(lao.id === state.activeLao && lao.id !== "ALL" ? "ALL" : lao.id);
-    });
-
+    const handler = () => {
+      if (onSelectLao)
+        onSelectLao(lao.id === state.activeLao && lao.id !== "ALL" ? "ALL" : lao.id);
+    };
+    card.addEventListener("click", handler);
     card.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        if (onSelectLao) onSelectLao(lao.id === state.activeLao && lao.id !== "ALL" ? "ALL" : lao.id);
-      }
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handler(); }
     });
 
     laoCirclesTrack.appendChild(card);
   });
 }
 
-/* ----------------------------------------------------
-   PROJECT EXECUTIVE CARDS (DRILLDOWN UNDER SELECTED LAO)
----------------------------------------------------- */
+/* ------------------------------------------------------------------
+   SCHEME CIRCULAR CARDS (drilldown under selected LAO)
+------------------------------------------------------------------ */
 export function renderProjectCircles(state, onSelectProject, onSendWhatsApp) {
   const panel = document.getElementById("projectDrilldownPanel");
   const track = document.getElementById("projectCirclesTrack");
-  const title = document.getElementById("projectDrilldownTitleText");
-  const badge = document.getElementById("projectCountBadge");
+  const titleEl = document.getElementById("projectDrilldownTitleText");
+  const badgeEl = document.getElementById("projectCountBadge");
 
   if (!panel || !track) return;
 
@@ -470,106 +483,99 @@ export function renderProjectCircles(state, onSelectProject, onSendWhatsApp) {
   }
 
   panel.style.display = "block";
-  if (title) title.textContent = `Schemes under ${state.activeLao}`;
-  if (badge) badge.textContent = `${projects.length} Schemes`;
+  if (titleEl) titleEl.textContent = `Schemes under ${state.activeLao}`;
+  if (badgeEl) badgeEl.textContent = `${projects.length} Scheme${projects.length > 1 ? "s" : ""}`;
 
   track.innerHTML = "";
 
-  // Card 0: "All Schemes in Authority" Card
+  /* ---------- "All Schemes" summary card ---------- */
+  const laoTotalRel = projects.reduce((a, d) => a + (d.releasedCr || 0), 0);
+  const laoTotalDis = projects.reduce((a, d) => a + (d.totalDisbursedCr || 0), 0);
+  const laoPct      = laoTotalRel > 0 ? (laoTotalDis / laoTotalRel) * 100 : 0;
+
   const allCard = document.createElement("div");
-  allCard.className = `project-circle-card ${state.activeProject === 'ALL' ? 'active' : ''}`;
+  allCard.className = `scheme-donut-card ${state.activeProject === "ALL" ? "active" : ""} all-schemes`;
   allCard.dataset.projectSl = "ALL";
   allCard.setAttribute("tabindex", "0");
   allCard.setAttribute("role", "button");
-
-  const laoTotalRel = projects.reduce((acc, d) => acc + (d.releasedCr || 0), 0);
-  const laoTotalDis = projects.reduce((acc, d) => acc + (d.totalDisbursedCr || 0), 0);
-  const laoPct = laoTotalRel > 0 ? (laoTotalDis / laoTotalRel) * 100 : 0;
+  allCard.setAttribute("aria-label", `All ${projects.length} schemes: ${laoPct.toFixed(1)}% disbursed`);
 
   allCard.innerHTML = `
-    <div class="proj-card-top">
-      <span class="proj-badge">ALL</span>
-      <span class="proj-pct-pill color-sky">${laoPct.toFixed(1)}%</span>
+    <div class="donut-wrap">
+      ${buildDonutSVG(laoPct, "#38bdf8")}
+      <div class="donut-center">
+        <span class="donut-pct" style="color:#38bdf8">${laoPct.toFixed(0)}%</span>
+        <span class="donut-code">ALL</span>
+      </div>
     </div>
-    <div class="project-card-name">All ${projects.length} Schemes</div>
-    <div class="project-card-amount-wrap">
-      <span class="project-card-amount">₹${laoTotalDis.toFixed(2)} Cr</span>
-      <span class="project-card-sublabel">Authority Total</span>
+    <div class="donut-card-body">
+      <div class="donut-name">All ${projects.length} Schemes</div>
+      <div class="donut-amount" style="color:#38bdf8">₹${laoTotalDis.toFixed(2)} Cr</div>
+      <div class="donut-meta">Authority Total · ₹${laoTotalRel.toFixed(2)} Cr</div>
     </div>
-    <div class="project-linear-meter">
-      <div class="project-meter-fill color-sky" style="width: ${Math.min(100, Math.max(0, laoPct)).toFixed(1)}%;"></div>
-    </div>
-    <div class="project-card-footer">
-      <span>${projects.length} Schemes</span>
-      <span>of ₹${laoTotalRel.toFixed(2)} Cr</span>
-    </div>
+    ${state.activeProject === "ALL" ? '<span class="donut-active-dot"></span>' : ""}
   `;
 
-  allCard.addEventListener("click", () => {
-    if (onSelectProject) onSelectProject("ALL");
-  });
+  allCard.addEventListener("click", () => { if (onSelectProject) onSelectProject("ALL"); });
   allCard.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      if (onSelectProject) onSelectProject("ALL");
-    }
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); if (onSelectProject) onSelectProject("ALL"); }
   });
   track.appendChild(allCard);
 
-  // Individual Project Cards
+  /* ---------- Individual scheme cards ---------- */
   projects.forEach((proj) => {
-    const rel = proj.releasedCr || 0;
-    const dis = proj.totalDisbursedCr || 0;
-    const pct = rel > 0 ? (dis / rel) * 100 : 0;
+    const rel        = proj.releasedCr || 0;
+    const dis        = proj.totalDisbursedCr || 0;
+    const pct        = rel > 0 ? (dis / rel) * 100 : 0;
     const isSelected = String(state.activeProject) === String(proj.slNo);
 
-    let themeClass = "color-amber";
-    if (pct >= 60) themeClass = "color-emerald";
-    else if (pct >= 30) themeClass = "color-sky";
+    let color = "#f59e0b";
+    if (pct >= 60) color = "#10b981";
+    else if (pct >= 30) color = "#38bdf8";
+
+    const benPaid  = proj.beneficiariesPaid || 0;
+    const benTotal = proj.totalBeneficiaries || 0;
+    const statusOk = (proj.status || "").toLowerCase().includes("completed");
 
     const card = document.createElement("div");
-    card.className = `project-circle-card ${isSelected ? 'active' : ''}`;
+    card.className = `scheme-donut-card ${isSelected ? "active" : ""}`;
     card.dataset.projectSl = proj.slNo;
     card.setAttribute("tabindex", "0");
     card.setAttribute("role", "button");
+    card.setAttribute("aria-label",
+      `#${proj.slNo} ${proj.project}: ${pct.toFixed(1)}% disbursed`);
 
     card.innerHTML = `
-      <div class="proj-card-top">
-        <span class="proj-badge">#${proj.slNo}</span>
-        <span class="proj-pct-pill ${themeClass}">${pct.toFixed(1)}%</span>
+      <div class="donut-wrap">
+        ${buildDonutSVG(pct, color)}
+        <div class="donut-center">
+          <span class="donut-pct" style="color:${color}">${pct.toFixed(0)}%</span>
+          <span class="donut-code">#${proj.slNo}</span>
+        </div>
       </div>
-      <div class="project-card-name" title="${escapeHtml(proj.project)}">${escapeHtml(proj.project)}</div>
-      <div class="project-card-amount-wrap">
-        <span class="project-card-amount">₹${dis.toFixed(2)} Cr</span>
-        <span class="project-card-sublabel">of ₹${rel.toFixed(2)} Cr</span>
+      <div class="donut-card-body">
+        <div class="donut-name" title="${escapeHtml(proj.project)}">${escapeHtml(proj.project)}</div>
+        <div class="donut-amount" style="color:${color}">₹${dis.toFixed(2)} Cr</div>
+        <div class="donut-meta">${intFormatter.format(benPaid)}/${intFormatter.format(benTotal)} Awardees</div>
+        <div class="donut-status-row">
+          <span class="donut-status-badge ${statusOk ? "ok" : "active"}">${statusOk ? "✓ Completed" : "In Progress"}</span>
+        </div>
       </div>
-      <div class="project-linear-meter">
-        <div class="project-meter-fill ${themeClass}" style="width: ${Math.min(100, Math.max(0, pct)).toFixed(1)}%;"></div>
-      </div>
-      <div class="project-card-footer">
-        <span>${proj.paymentCompletedExtentAc.toFixed(1)} Ac</span>
-        <span>${intFormatter.format(proj.beneficiariesPaid)}/${intFormatter.format(proj.totalBeneficiaries)} Ben.</span>
-      </div>
+      ${isSelected ? '<span class="donut-active-dot"></span>' : ""}
     `;
 
-    card.addEventListener("click", () => {
-      if (onSelectProject) {
+    const handler = () => {
+      if (onSelectProject)
         onSelectProject(String(state.activeProject) === String(proj.slNo) ? "ALL" : proj.slNo);
-      }
-    });
+    };
+    card.addEventListener("click", handler);
     card.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        if (onSelectProject) {
-          onSelectProject(String(state.activeProject) === String(proj.slNo) ? "ALL" : proj.slNo);
-        }
-      }
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handler(); }
     });
 
     track.appendChild(card);
   });
 
-  // Render the Scheme Spotlight Card if a single scheme is active
   renderSchemeSpotlight(state, onSendWhatsApp, onSelectProject);
 }
 
